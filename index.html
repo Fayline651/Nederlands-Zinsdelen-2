@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nederlands Zinsdelen Master - The Ultimate Arcade</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Fredoka', 'sans-serif']
+                    },
+                    animation: {
+                        'bounce-short': 'bounce 0.5s ease-in-out 1',
+                        'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'wiggle': 'wiggle 0.3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .shake-screen {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+        .glow-streak {
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+        }
+        .glow-card {
+            box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.3);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col justify-between overflow-x-hidden relative">
+
+    <!-- Canvas for Confetti & Particle Effects -->
+    <canvas id="effectsCanvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+    <!-- Floating Score Popups Container -->
+    <div id="popupContainer" class="fixed inset-0 pointer-events-none z-40 overflow-hidden"></div>
+
+    <!-- Top Header & Game Status -->
+    <header class="w-full max-w-5xl mx-auto px-4 py-4 z-10">
+        <div class="bg-slate-800/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-4 shadow-xl flex flex-wrap items-center justify-between gap-4">
+            <!-- Brand / Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-tr from-indigo-600 to-purple-500 rounded-xl flex items-center justify-center font-display font-bold text-2xl text-white shadow-lg shadow-indigo-500/30">
+                    Z
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-xl text-white leading-none">Zinsdelen <span class="text-indigo-400">Master</span></h1>
+                    <p class="text-xs text-slate-400 font-semibold tracking-wide uppercase mt-1">Arcade Modus</p>
+                </div>
+            </div>
+
+            <!-- In-game Stats Grid -->
+            <div id="gameStats" class="flex items-center gap-3 sm:gap-6">
+                <!-- Level Badge -->
+                <div class="bg-slate-900/90 border border-indigo-500/30 px-3 py-1.5 rounded-xl text-center">
+                    <span class="text-[10px] uppercase font-bold text-indigo-400 block tracking-wider">Level</span>
+                    <span id="statLevel" class="font-display text-lg font-bold text-amber-300">1</span>
+                </div>
+
+                <!-- Timer -->
+                <div class="bg-slate-900/90 border border-slate-700 px-3.5 py-1.5 rounded-xl text-center min-w-[90px]">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Tijd</span>
+                    <span id="statTimer" class="font-display text-lg font-bold text-emerald-400">05:00</span>
+                </div>
+
+                <!-- Score -->
+                <div class="bg-slate-900/90 border border-slate-700 px-4 py-1.5 rounded-xl text-center min-w-[100px]">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Score</span>
+                    <span id="statScore" class="font-display text-xl font-bold text-white">0</span>
+                </div>
+
+                <!-- Lives -->
+                <div class="bg-slate-900/90 border border-red-500/20 px-3 py-1.5 rounded-xl text-center">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Levens</span>
+                    <div id="statLives" class="flex gap-1 text-lg">
+                        <span>❤️</span><span>❤️</span><span>❤️</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Combo & Progress Bar -->
+        <div id="comboContainer" class="mt-3 flex items-center gap-3 transition-opacity opacity-0">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-display font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider animate-pulse-fast shadow-md shadow-amber-500/20">
+                <span id="comboMultiplier">2x</span> Combo Streak! 🔥
+            </div>
+            <div class="flex-1 bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
+                <div id="comboBar" class="bg-gradient-to-r from-amber-400 to-orange-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl mx-auto px-4 py-4 flex-1 flex flex-col justify-center z-10">
+        
+        <!-- ================= START SCREEN ================= -->
+        <div id="startScreen" class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-10 text-center glow-card my-auto">
+            <div class="inline-block bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+                🚀 De Ulitieme Grammatica Challenge
+            </div>
+            <h2 class="font-display text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
+                Hoe snel kun jij <br><span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Zinsdelen Ontleden?</span>
+            </h2>
+            <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                Herken de persoonsvorm, het onderwerp, lijdend voorwerp, bijwoordelijke bepaling en nog veel meer! Bouw mega-combos, overleef 5 minuten en strijd voor de #1 plek op de ranglijst.
+            </p>
+
+            <!-- Rules Summary -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-8 text-left text-xs sm:text-sm">
+                <div class="bg-slate-900/60 border border-slate-700/50 p-3.5 rounded-2xl flex items-center gap-3">
+                    <span class="text-2xl">⏱️</span>
+                    <div>
+                        <strong class="block text-white font-bold">5 Minuten</strong>
+                        <span class="text-slate-400">Scoor zoveel mogelijk punten!</span>
+                    </div>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-700/50 p-3.5 rounded-2xl flex items-center gap-3">
+                    <span class="text-2xl">❤️</span>
+                    <div>
+                        <strong class="block text-white font-bold">3 Levens</strong>
+                        <span class="text-slate-400">Fout antwoord kost 1 leven!</span>
+                    </div>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-700/50 p-3.5 rounded-2xl flex items-center gap-3">
+                    <span class="text-2xl">⚡</span>
+                    <div>
+                        <strong class="block text-white font-bold">Oneindig Levels</strong>
+                        <span class="text-slate-400">Zinnen worden steeds uitdagender.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button id="btnStartGame" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-display font-bold text-lg rounded-2xl shadow-lg shadow-indigo-500/30 transform active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer">
+                    <span>▶ START SPEL</span>
+                </button>
+                <button id="btnOpenLeaderboard" class="w-full sm:w-auto px-6 py-4 bg-slate-700 hover:bg-slate-600 text-slate-200 font-display font-bold text-base rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-600">
+                    <span>🏆 Ranglijst Bekijken</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= PLAY GAME SCREEN ================= -->
+        <div id="gamePlayScreen" class="hidden flex-col gap-6 my-auto">
+            
+            <!-- Question Header Banner -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-xl">
+                <!-- Decorative Glow Background -->
+                <div class="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-3">
+                    <span id="questionCategory">Zinsdeel Vraag</span>
+                </div>
+
+                <h2 id="questionPrompt" class="font-display text-xl sm:text-2xl font-bold text-white mb-6">
+                    Laden van vraag...
+                </h2>
+
+                <!-- Sentence Display Box -->
+                <div id="sentenceDisplayContainer" class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 min-h-[100px] flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-lg sm:text-2xl font-semibold text-slate-100 shadow-inner">
+                    <!-- Dynamic interactive words or highlighted phrase inserted here -->
+                </div>
+            </div>
+
+            <!-- Interactive Answer Controls -->
+            <div id="answerOptionsContainer" class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-xl">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider text-center mb-4" id="controlsInstruction">
+                    Kies het juiste antwoord:
+                </p>
+                <div id="optionsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <!-- Option buttons populated by JS -->
+                </div>
+            </div>
+
+            <!-- Instant Feedback Bar -->
+            <div id="feedbackBanner" class="hidden p-4 rounded-2xl text-center font-display font-bold text-base transition-all animate-bounce-short">
+            </div>
+
+        </div>
+
+        <!-- ================= GAME OVER / END SCREEN ================= -->
+        <div id="gameOverScreen" class="hidden bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-10 text-center glow-card my-auto">
+            <div class="text-5xl mb-2" id="endEmoji">🎉</div>
+            <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-white mb-1" id="endTitle">
+                Tijd is om!
+            </h2>
+            <p class="text-slate-400 text-sm mb-6" id="endSubtitle">Wat een fantastische prestatie!</p>
+
+            <!-- Final Stats Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+                <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-2xl text-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Eindscore</span>
+                    <span id="finalScore" class="font-display text-2xl font-bold text-amber-400">0</span>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-2xl text-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Niveau Bereikt</span>
+                    <span id="finalLevel" class="font-display text-2xl font-bold text-indigo-400">1</span>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-2xl text-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Max Combo</span>
+                    <span id="finalStreak" class="font-display text-2xl font-bold text-orange-400">0x</span>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-700 p-4 rounded-2xl text-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Nauwkeurigheid</span>
+                    <span id="finalAccuracy" class="font-display text-2xl font-bold text-emerald-400">100%</span>
+                </div>
+            </div>
+
+            <!-- Submit Highscore Form -->
+            <div id="submitScoreBox" class="bg-slate-900/90 border border-indigo-500/30 p-5 rounded-2xl mb-8 text-left">
+                <h3 class="font-display font-bold text-white text-base mb-2">🏆 Plaats je score op het Rangbord</h3>
+                <p class="text-xs text-slate-400 mb-4">Vul je naam in om mee te dingen voor de hoogste positie van alle spelers.</p>
+                
+                <form id="scoreForm" class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="playerNameInput" placeholder="Jouw Naam of GamerTag..." maxlength="20" required class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium text-sm">
+                    <button type="submit" id="btnSubmitScore" class="bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold px-6 py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2 cursor-pointer">
+                        <span>Score Opslaan 💾</span>
+                    </button>
+                </form>
+                <p id="saveStatusMsg" class="text-xs font-semibold mt-2 text-indigo-300 hidden"></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="btnPlayAgain" class="px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-display font-bold rounded-2xl shadow-lg transition-all text-base cursor-pointer">
+                    🔄 Opnieuw Spelen
+                </button>
+                <button id="btnViewLeaderboardEnd" class="px-6 py-3.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-display font-bold rounded-2xl transition-all text-base border border-slate-600 cursor-pointer">
+                    🏆 Ranglijst
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= LEADERBOARD MODAL / SCREEN ================= -->
+        <div id="leaderboardScreen" class="hidden bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 text-center glow-card my-auto">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">🏆</span>
+                    <div class="text-left">
+                        <h2 class="font-display text-2xl font-bold text-white">Wereldwijde Ranglijst</h2>
+                        <p class="text-xs text-slate-400">Beste Nederlands Zinsdelen spelers aller tijden</p>
+                    </div>
+                </div>
+                <button id="btnCloseLeaderboard" class="bg-slate-700 hover:bg-slate-600 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Highscore Table -->
+            <div class="max-h-[350px] overflow-y-auto pr-1 mb-6">
+                <div id="leaderboardLoading" class="py-8 text-slate-400 text-sm animate-pulse">
+                    Scores laden van de server... ⏳
+                </div>
+                <table id="leaderboardTable" class="w-full text-left text-sm hidden">
+                    <thead class="text-xs uppercase text-slate-400 bg-slate-900/60 sticky top-0">
+                        <tr>
+                            <th class="py-3 px-4 rounded-l-xl">#</th>
+                            <th class="py-3 px-4">Speler</th>
+                            <th class="py-3 px-4 text-center">Lvl</th>
+                            <th class="py-3 px-4 text-right rounded-r-xl">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody" class="divide-y divide-slate-700/40">
+                        <!-- Populated by Firebase -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button id="btnBackToStart" class="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-display font-bold rounded-xl transition cursor-pointer">
+                Terug naar Menu
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="w-full text-center py-4 text-slate-500 text-xs z-10">
+        Nederlands Zinsdelen Master • Interactieve Grammatica Arcade
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration Guard
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nederlands-zinsdelen';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-key",
+            authDomain: "demo-app.firebaseapp.com",
+            projectId: "demo-app",
+            storageBucket: "demo-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        let db = null;
+        let auth = null;
+        let user = null;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Authenticate safely
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        const userCred = await signInWithCustomToken(auth, __initial_auth_token);
+                        user = userCred.user;
+                    } else {
+                        const userCred = await signInAnonymously(auth);
+                        user = userCred.user;
+                    }
+                } catch (e) {
+                    console.warn("Auth initialization error, offline fallback ready:", e);
+                }
+            };
+            initAuth();
+        } catch (e) {
+            console.warn("Firebase not configured or running offline:", e);
+        }
+
+        // Leaderboard Firebase Firestore Functions
+        async function saveScoreToLeaderboard(playerName, score, level, streak) {
+            if (!db || !auth) return false;
+            try {
+                // Rule 1: STRICT PATH /artifacts/{appId}/public/data/{collectionName}
+                const leaderboardRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                await addDoc(leaderboardRef, {
+                    name: playerName,
+                    score: Number(score),
+                    level: Number(level),
+                    maxStreak: Number(streak),
+                    timestamp: new Date().toISOString()
+                });
+                return true;
+            } catch (err) {
+                console.error("Error saving score:", err);
+                return false;
+            }
+        }
+
+        function listenLeaderboard(callback) {
+            if (!db) {
+                callback([]);
+                return;
+            }
+            try {
+                // Rule 1: STRICT PATH
+                const leaderboardRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                // Rule 2: NO COMPLEX QUERIES - fetch simple collection and sort in memory JS
+                onSnapshot(leaderboardRef, (snapshot) => {
+                    const scores = [];
+                    snapshot.forEach((doc) => {
+                        scores.push({ id: doc.id, ...doc.data() });
+                    });
+                    // Sort in memory by score descending
+                    scores.sort((a, b) => (b.score || 0) - (a.score || 0));
+                    callback(scores.slice(0, 50)); // Top 50
+                }, (error) => {
+                    console.error("Leaderboard snapshot error:", error);
+                    callback([]);
+                });
+            } catch (e) {
+                console.error("Leaderboard listener failed:", e);
+                callback([]);
+            }
+        }
+
+        window.saveScoreToLeaderboard = saveScoreToLeaderboard;
+        window.listenLeaderboard = listenLeaderboard;
+    </script>
+
+    <script>
+        /* Web Audio Synthesizer for Zero-Dependency Arcade SFX */
+        class AudioSynth {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playCorrect() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+
+            playWrong() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.exponentialRampToValueAtTime(130.81, now + 0.25); // C3
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+
+            playCombo(multiplier) {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                const baseFreq = 400 + Math.min(multiplier * 100, 800);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.15);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+
+            playLevelUp() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [440, 554.37, 659.25, 880]; // A major chord arpeggio
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.2);
+                });
+            }
+        }
+
+        const audioSynth = new AudioSynth();
+    </script>
+
+    <script>
+        /* Canvas Particle & Confetti Engine */
+        const canvas = document.getElementById('effectsCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 8 + 4;
+                this.vx = (Math.random() - 0.5) * 12;
+                this.vy = (Math.random() - 0.7) * 14;
+                this.color = color;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.015;
+                this.gravity = 0.3;
+                this.rotation = Math.random() * 360;
+                this.vRot = (Math.random() - 0.5) * 10;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.alpha -= this.decay;
+                this.rotation += this.vRot;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function spawnBurst(x, y, count = 35) {
+            const colors = ['#f59e0b', '#ec4899', '#6366f1', '#10b981', '#3b82f6', '#8b5cf6'];
+            for (let i = 0; i < count; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function renderParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw(ctx);
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(renderParticles);
+        }
+        renderParticles();
+
+        function showFloatingPopup(text, colorClass = "text-amber-400", x, y) {
+            const container = document.getElementById('popupContainer');
+            const popup = document.createElement('div');
+            popup.className = `fixed font-display font-extrabold text-2xl sm:text-3xl ${colorClass} pointer-events-none transition-all duration-700 ease-out z-50 drop-shadow-lg`;
+            popup.innerText = text;
+
+            const posX = x || window.innerWidth / 2 - 40;
+            const posY = y || window.innerHeight / 2 - 50;
+
+            popup.style.left = `${posX}px`;
+            popup.style.top = `${posY}px`;
+            popup.style.opacity = '1';
+            popup.style.transform = 'scale(0.8) translateY(0)';
+
+            container.appendChild(popup);
+
+            requestAnimationFrame(() => {
+                popup.style.transform = 'scale(1.3) translateY(-60px)';
+                popup.style.opacity = '0';
+            });
+
+            setTimeout(() => {
+                popup.remove();
+            }, 750);
+        }
+    </script>
+
+    <script>
+        /* High-Variety Dutch Grammar & Sentence Bank Generator */
+        
+        // Zinsdelen Definition Catalog
+        const ZINSDEEL_TYPES = {
+            PV: { code: 'pv', name: 'Persoonsvorm (PV)', desc: 'Het vervoegde werkwoord dat verandert bij tijd/getal' },
+            OW: { code: 'ow', name: 'Onderwerp (OW)', desc: 'Wie of wat doet de handeling?' },
+            WG: { code: 'wg', name: 'Werkwoordelijk Gegzegde (WG)', desc: 'Alle werkwoorden in de zin samen' },
+            NG: { code: 'ng', name: 'Naamwoordelijk Gegzegde (NG)', desc: 'Koppelwerkwoord + naamwoordelijk deel' },
+            LV: { code: 'lv', name: 'Lijdend Voorwerp (LV)', desc: 'Wie of wat ondergaat de werking?' },
+            MV: { code: 'mv', name: 'Meewerkend Voorwerp (MV)', desc: 'Aan/voor wie wordt iets gedaan/gegeven?' },
+            BWB: { code: 'bwb', name: 'Bijwoordelijke Bepaling (BWB)', desc: 'Schaft info over tijd, plaats, wijze, reden' },
+            BVB: { code: 'bvb', name: 'Bijvoeglijke Bepaling (BVB)', desc: 'Zegt iets over een zelfstandig naamwoord' },
+            VV: { code: 'vv', name: 'Voorzetselvoorwerp (VV)', desc: 'Vast voorzetsel gekoppeld aan het werkwoord' }
+        };
+
+        // Rich Sentence Template Database
+        const SENTENCE_DATABASE = [
+            // Level 1-2: Basic Sentences (PV, OW, LV, BWB)
+            {
+                chunks: ["De nieuwsgierige kat", "vliegt", "morgen", "naar de maan"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
+                },
+                levelMin: 1
+            },
+            {
+                chunks: ["Gisteravond", "las", "de enthousiaste leraar", "een spannend boek", "in de bibliotheek"],
+                analysis: {
+                    0: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'OW', label: 'Onderwerp' },
+                    3: { type: 'LV', label: 'Lijdend Voorwerp' },
+                    4: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
+                },
+                levelMin: 1
+            },
+            {
+                chunks: ["Onze getalenteerde kok", "bakt", "elke ochtend", "verse broodjes"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    3: { type: 'LV', label: 'Lijdend Voorwerp' }
+                },
+                levelMin: 1
+            },
+            {
+                chunks: ["De vrolijke kinderen", "spelen", "enthousiast", "in de tuin"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
+                },
+                levelMin: 1
+            },
+
+            // Level 2-4: Indirect Objects & Verbal Predicates (MV, WG)
+            {
+                chunks: ["Oma", "geeft", "haar lieve kleinkind", "een prachtig cadeautje"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
+                    3: { type: 'LV', label: 'Lijdend Voorwerp' }
+                },
+                levelMin: 2
+            },
+            {
+                chunks: ["De burgemeester", "reikte", "de heldhaftige redder", "een medaille", "uit"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
+                    3: { type: 'LV', label: 'Lijdend Voorwerp' },
+                    4: { type: 'WG', label: 'Werkwoordelijk Gegzegde' }
+                },
+                levelMin: 2
+            },
+            {
+                chunks: ["Mijn beste vriend", "heeft", "mij", "gisteren", "gebelijk geholpen"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
+                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    4: { type: 'WG', label: 'Werkwoordelijk Gegzegde' }
+                },
+                levelMin: 2
+            },
+            {
+                chunks: ["De ober", "serveerde", "de hongerige gasten", "een heerlijke maaltijd"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
+                    3: { type: 'LV', label: 'Lijdend Voorwerp' }
+                },
+                levelMin: 2
+            },
+
+            // Level 3-5+: Nominal Predicates & Prepositional Objects (NG, VV, BVB)
+            {
+                chunks: ["Die ervaren astronaut", "is", "heel erg trots op haar prestatie"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'NG', label: 'Naamwoordelijk Gegzegde' }
+                },
+                levelMin: 3
+            },
+            {
+                chunks: ["De fanatieke sporters", "wachten", "al uren", "op het verlossende eindsignaal"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    3: { type: 'VV', label: 'Voorzetselvoorwerp' }
+                },
+                levelMin: 3
+            },
+            {
+                chunks: ["De slimme studente", "twijfelt", "nooit", "aan haar talent"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    3: { type: 'VV', label: 'Voorzetselvoorwerp' }
+                },
+                levelMin: 3
+            },
+            {
+                chunks: ["Tijdens de storm", "is", "de oude eikenboom", "in de tuin", "omgewaaid"],
+                analysis: {
+                    0: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'OW', label: 'Onderwerp' },
+                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    4: { type: 'WG', label: 'Werkwoordelijk Gegzegde' }
+                },
+                levelMin: 3
+            },
+            {
+                chunks: ["Onze docent Nederlands", "blijft", "altijd", "vrolijk en geduldig"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    3: { type: 'NG', label: 'Naamwoordelijk Gegzegde' }
+                },
+                levelMin: 4
+            },
+            {
+                chunks: ["De jonge muzikant", "droomt", "al jaren", "van een wereldtournee"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'PV', label: 'Persoonsvorm' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    3: { type: 'VV', label: 'Voorzetselvoorwerp' }
+                },
+                levelMin: 4
+            }
+        ];
+
+        // Procedural Generator for Infinite Scale Beyond Template Bank
+        function generateProceduralSentence(level) {
+            const subjects = ["De slimme detective", "Een razendsnelle coureur", "Onze vriendelijke buurman", "De beroemde kunstenaar", "Een hongerige kat", "De uitvinder"];
+            const verbsPV = ["zoekt", "vond", "geeft", "stuurt", "bouwt", "tekent"];
+            const objectsLV = ["een geheim raadsel", "de verloren sleutel", "een waardevol schilderij", "een nieuwe robot", "een smakelijke snack"];
+            const objectsMV = ["zijn beste vriend", "de enthousiaste publiek", "haar kleine broertje", "de burgemeester"];
+            const adverbialTime = ["gistermiddag", "tijdens het festival", "om stipt acht uur", "meteen na de pauze", "onverwachts"];
+            const adverbialPlace = ["in de oude stad", "op het drukke plein", "in het laboratorium", "onder de brug"];
+
+            const sub = subjects[Math.floor(Math.random() * subjects.length)];
+            const pv = verbsPV[Math.floor(Math.random() * verbsPV.length)];
+            const lv = objectsLV[Math.floor(Math.random() * objectsLV.length)];
+            const mv = objectsMV[Math.floor(Math.random() * objectsMV.length)];
+            const bwbTime = adverbialTime[Math.floor(Math.random() * adverbialTime.length)];
+            const bwbPlace = adverbialPlace[Math.floor(Math.random() * adverbialPlace.length)];
+
+            // Randomize order pattern
+            const patterns = [
+                {
+                    chunks: [bwbTime, pv, sub, mv, lv],
+                    analysis: {
+                        0: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                        1: { type: 'PV', label: 'Persoonsvorm' },
+                        2: { type: 'OW', label: 'Onderwerp' },
+                        3: { type: 'MV', label: 'Meewerkend Voorwerp' },
+                        4: { type: 'LV', label: 'Lijdend Voorwerp' }
+                    }
+                },
+                {
+                    chunks: [sub, pv, mv, lv, bwbPlace],
+                    analysis: {
+                        0: { type: 'OW', label: 'Onderwerp' },
+                        1: { type: 'PV', label: 'Persoonsvorm' },
+                        2: { type: 'MV', label: 'Meewerkend Voorwerp' },
+                        3: { type: 'LV', label: 'Lijdend Voorwerp' },
+                        4: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
+                    }
+                }
+            ];
+
+            return patterns[Math.floor(Math.random() * patterns.length)];
+        }
+    </script>
+
+    <script>
+        /* Core Game State Engine */
+        const GAME_DURATION = 300; // 5 Minutes = 300 Seconds
+        const MAX_LIVES = 3;
+
+        let gameState = {
+            active: false,
+            score: 0,
+            level: 1,
+            lives: MAX_LIVES,
+            timeLeft: GAME_DURATION,
+            streak: 0,
+            maxStreak: 0,
+            correctAnswers: 0,
+            totalQuestions: 0,
+            timerInterval: null,
+            currentQuestion: null
+        };
+
+        // UI Element References
+        const ui = {
+            startScreen: document.getElementById('startScreen'),
+            gamePlayScreen: document.getElementById('gamePlayScreen'),
+            gameOverScreen: document.getElementById('gameOverScreen'),
+            leaderboardScreen: document.getElementById('leaderboardScreen'),
+            
+            // Stats
+            statLevel: document.getElementById('statLevel'),
+            statTimer: document.getElementById('statTimer'),
+            statScore: document.getElementById('statScore'),
+            statLives: document.getElementById('statLives'),
+            comboContainer: document.getElementById('comboContainer'),
+            comboMultiplier: document.getElementById('comboMultiplier'),
+            comboBar: document.getElementById('comboBar'),
+
+            // Question components
+            questionCategory: document.getElementById('questionCategory'),
+            questionPrompt: document.getElementById('questionPrompt'),
+            sentenceContainer: document.getElementById('sentenceDisplayContainer'),
+            optionsGrid: document.getElementById('optionsGrid'),
+            controlsInstruction: document.getElementById('controlsInstruction'),
+            feedbackBanner: document.getElementById('feedbackBanner'),
+
+            // End game stats
+            finalScore: document.getElementById('finalScore'),
+            finalLevel: document.getElementById('finalLevel'),
+            finalStreak: document.getElementById('finalStreak'),
+            finalAccuracy: document.getElementById('finalAccuracy'),
+            playerNameInput: document.getElementById('playerNameInput'),
+            scoreForm: document.getElementById('scoreForm'),
+            btnSubmitScore: document.getElementById('btnSubmitScore'),
+            saveStatusMsg: document.getElementById('saveStatusMsg'),
+
+            // Leaderboard
+            leaderboardLoading: document.getElementById('leaderboardLoading'),
+            leaderboardTable: document.getElementById('leaderboardTable'),
+            leaderboardBody: document.getElementById('leaderboardBody')
+        };
+
+        // Event Listeners Setup
+        document.getElementById('btnStartGame').addEventListener('click', startGame);
+        document.getElementById('btnPlayAgain').addEventListener('click', startGame);
+        document.getElementById('btnOpenLeaderboard').addEventListener('click', openLeaderboard);
+        document.getElementById('btnViewLeaderboardEnd').addEventListener('click', openLeaderboard);
+        document.getElementById('btnCloseLeaderboard').addEventListener('click', closeLeaderboard);
+        document.getElementById('btnBackToStart').addEventListener('click', closeLeaderboard);
+        ui.scoreForm.addEventListener('submit', handleScoreSubmit);
+
+        function startGame() {
+            audioSynth.init();
+
+            // Reset Game State
+            gameState = {
+                active: true,
+                score: 0,
+                level: 1,
+                lives: MAX_LIVES,
+                timeLeft: GAME_DURATION,
+                streak: 0,
+                maxStreak: 0,
+                correctAnswers: 0,
+                totalQuestions: 0,
+                timerInterval: null,
+                currentQuestion: null
+            };
+
+            // Switch Screen Views
+            ui.startScreen.classList.add('hidden');
+            ui.gameOverScreen.classList.add('hidden');
+            ui.leaderboardScreen.classList.add('hidden');
+            ui.gamePlayScreen.classList.remove('hidden');
+            ui.gamePlayScreen.classList.add('flex');
+
+            // Reset Form Status
+            ui.btnSubmitScore.disabled = false;
+            ui.btnSubmitScore.style.opacity = '1';
+            ui.saveStatusMsg.classList.add('hidden');
+
+            updateStatsUI();
+
+            // Start 5 Minute Countdown
+            clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(tickTimer, 1000);
+
+            // Load First Question
+            loadNextQuestion();
+        }
+
+        function tickTimer() {
+            if (!gameState.active) return;
+            gameState.timeLeft--;
+
+            if (gameState.timeLeft <= 0) {
+                gameState.timeLeft = 0;
+                endGame("Tijd is om! ⏱️", "De 5 minuten zijn voorbij. Bekijk je geweldige score!");
+                return;
+            }
+
+            updateTimerUI();
+        }
+
+        function updateTimerUI() {
+            const mins = Math.floor(gameState.timeLeft / 60);
+            const secs = gameState.timeLeft % 60;
+            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            ui.statTimer.innerText = formatted;
+
+            if (gameState.timeLeft <= 30) {
+                ui.statTimer.className = 'font-display text-lg font-bold text-red-400 animate-pulse-fast';
+            } else {
+                ui.statTimer.className = 'font-display text-lg font-bold text-emerald-400';
+            }
+        }
+
+        function updateStatsUI() {
+            ui.statScore.innerText = gameState.score.toLocaleString();
+            ui.statLevel.innerText = gameState.level;
+            
+            // Render Hearts
+            let hearts = '';
+            for (let i = 0; i < MAX_LIVES; i++) {
+                hearts += i < gameState.lives ? '❤️' : '🖤';
+            }
+            ui.statLives.innerHTML = hearts;
+
+            // Render Combo Streak Bar
+            if (gameState.streak >= 2) {
+                ui.comboContainer.style.opacity = '1';
+                ui.comboMultiplier.innerText = `${Math.min(gameState.streak, 10)}x`;
+                const progressPct = Math.min((gameState.streak / 10) * 100, 100);
+                ui.comboBar.style.width = `${progressPct}%`;
+            } else {
+                ui.comboContainer.style.opacity = '0';
+                ui.comboBar.style.width = '0%';
+            }
+
+            updateTimerUI();
+        }
+
+        // Question Generation Engine
+        function loadNextQuestion() {
+            hideFeedback();
+
+            // Select sentence based on level or generate procedural
+            let item;
+            const validTemplates = SENTENCE_DATABASE.filter(s => s.levelMin <= gameState.level);
+            if (validTemplates.length > 0 && Math.random() < 0.75) {
+                item = validTemplates[Math.floor(Math.random() * validTemplates.length)];
+            } else {
+                item = generateProceduralSentence(gameState.level);
+            }
+
+            // Pick question mode: 
+            // Mode A: "Aanwijzen" -> Click the chunk that is [Zinsdeel]
+            // Mode B: "Benoemen" -> What zinsdeel is highlighted chunk?
+            const mode = Math.random() > 0.5 ? 'IDENTIFY_TYPE' : 'SELECT_CHUNK';
+
+            const chunkIndices = Object.keys(item.analysis);
+            const targetIndex = Number(chunkIndices[Math.floor(Math.random() * chunkIndices.length)]);
+            const targetInfo = item.analysis[targetIndex];
+
+            gameState.currentQuestion = {
+                item: item,
+                mode: mode,
+                targetIndex: targetIndex,
+                targetInfo: targetInfo
+            };
+
+            renderQuestionUI();
+        }
+
+        function renderQuestionUI() {
+            const q = gameState.currentQuestion;
+            ui.sentenceContainer.innerHTML = '';
+            ui.optionsGrid.innerHTML = '';
+
+            if (q.mode === 'SELECT_CHUNK') {
+                // Mode A: User clicks on the sentence chunk
+                const zName = ZINSDEEL_TYPES[q.targetInfo.type]?.name || q.targetInfo.label;
+                ui.questionCategory.innerText = "Tik het Zinsdeel aan";
+                ui.questionPrompt.innerHTML = `Klik op het <span class="text-amber-400 font-extrabold underline decoration-amber-400 decoration-2">${zName}</span> in deze zin:`;
+                ui.controlsInstruction.innerText = "Klik op het juiste zinsdeel in het vak hierboven 👆";
+
+                // Build clickable sentence chunks
+                q.item.chunks.forEach((chunkText, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "px-4 py-2.5 bg-slate-800 hover:bg-indigo-600/80 border border-slate-700 hover:border-indigo-400 rounded-xl text-white transition-all transform hover:scale-105 active:scale-95 cursor-pointer shadow-md font-semibold text-base sm:text-xl";
+                    btn.innerText = chunkText;
+                    btn.onclick = (e) => handleAnswerSelection(idx, e);
+                    ui.sentenceContainer.appendChild(btn);
+                });
+
+                // Helper text in options area
+                const infoBox = document.createElement('div');
+                infoBox.className = "col-span-full text-center text-slate-400 text-sm py-4 italic";
+                infoBox.innerText = `💡 Tip: ${ZINSDEEL_TYPES[q.targetInfo.type]?.desc || 'Analyseer de zinsstructuur.'}`;
+                ui.optionsGrid.appendChild(infoBox);
+
+            } else {
+                // Mode B: Phrase is highlighted, choose Zinsdeel type from options
+                ui.questionCategory.innerText = "Benoem het Zinsdeel";
+                ui.questionPrompt.innerText = "Welk zinsdeel is de schuingedrukte/gemarkeerde groep?";
+                ui.controlsInstruction.innerText = "Kies het juiste zinsdeel uit de onderstaande opties 👇";
+
+                // Display sentence with highlighted chunk
+                q.item.chunks.forEach((chunkText, idx) => {
+                    const span = document.createElement('span');
+                    if (idx === q.targetIndex) {
+                        span.className = "px-3 py-1.5 bg-gradient-to-r from-amber-500/30 to-orange-500/30 border-2 border-amber-400 text-amber-200 font-extrabold rounded-xl shadow-lg animate-pulse-fast";
+                    } else {
+                        span.className = "px-2 py-1 text-slate-300 opacity-90";
+                    }
+                    span.innerText = chunkText;
+                    ui.sentenceContainer.appendChild(span);
+                });
+
+                // Generate 4 multiple-choice options (including correct type)
+                const correctType = q.targetInfo.type;
+                const allKeys = Object.keys(ZINSDEEL_TYPES);
+                const optionsSet = new Set([correctType]);
+
+                while (optionsSet.size < Math.min(4, allKeys.length)) {
+                    const randomKey = allKeys[Math.floor(Math.random() * allKeys.length)];
+                    optionsSet.add(randomKey);
+                }
+
+                const shuffleOptions = Array.from(optionsSet).sort(() => Math.random() - 0.5);
+
+                shuffleOptions.forEach(typeKey => {
+                    const typeObj = ZINSDEEL_TYPES[typeKey];
+                    const optBtn = document.createElement('button');
+                    optBtn.className = "w-full p-4 bg-slate-900/90 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-400 rounded-2xl text-left transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer shadow-md flex flex-col justify-between group";
+                    
+                    optBtn.innerHTML = `
+                        <span class="font-display font-bold text-white group-hover:text-amber-300 text-base mb-1">${typeObj.name}</span>
+                        <span class="text-xs text-slate-400 group-hover:text-slate-100">${typeObj.desc}</span>
+                    `;
+
+                    optBtn.onclick = (e) => handleAnswerSelection(typeKey, e);
+                    ui.optionsGrid.appendChild(optBtn);
+                });
+            }
+        }
+
+        function handleAnswerSelection(selected, event) {
+            if (!gameState.active) return;
+
+            gameState.totalQuestions++;
+            const q = gameState.currentQuestion;
+            let isCorrect = false;
+
+            if (q.mode === 'SELECT_CHUNK') {
+                isCorrect = (selected === q.targetIndex);
+            } else {
+                isCorrect = (selected === q.targetInfo.type);
+            }
+
+            const clickX = event ? event.clientX : window.innerWidth / 2;
+            const clickY = event ? event.clientY : window.innerHeight / 2;
+
+            if (isCorrect) {
+                // Correct Answer Logic
+                gameState.correctAnswers++;
+                gameState.streak++;
+                if (gameState.streak > gameState.maxStreak) {
+                    gameState.maxStreak = gameState.streak;
+                }
+
+                // Calculate Score & Multiplier
+                const comboMultiplier = Math.min(gameState.streak, 10);
+                const basePoints = 100 * gameState.level;
+                const earnedPoints = basePoints * comboMultiplier;
+                gameState.score += earnedPoints;
+
+                // Level up check every 5 correct answers
+                if (gameState.correctAnswers % 5 === 0) {
+                    gameState.level++;
+                    audioSynth.playLevelUp();
+                    showFeedback(`🎉 LEVEL UP! NIVEAU ${gameState.level}`, 'bg-purple-600/90 text-white border-2 border-purple-300');
+                    showFloatingPopup(`LEVEL ${gameState.level}! 🔥`, 'text-purple-300');
+                } else if (gameState.streak >= 3) {
+                    audioSynth.playCombo(comboMultiplier);
+                    showFeedback(`🔥 COMBO x${comboMultiplier}! +${earnedPoints} PT`, 'bg-amber-500/90 text-slate-950 border-2 border-amber-300');
+                    showFloatingPopup(`+${earnedPoints}`, 'text-amber-400', clickX, clickY);
+                } else {
+                    audioSynth.playCorrect();
+                    showFeedback(`GEWELDIG! +${earnedPoints} PT`, 'bg-emerald-600/90 text-white border-2 border-emerald-300');
+                    showFloatingPopup(`+${earnedPoints}`, 'text-emerald-400', clickX, clickY);
+                }
+
+                spawnBurst(clickX, clickY, 25);
+
+            } else {
+                // Wrong Answer Logic
+                gameState.streak = 0;
+                gameState.lives--;
+
+                audioSynth.playWrong();
+                document.body.classList.add('shake-screen');
+                setTimeout(() => document.body.classList.remove('shake-screen'), 400);
+
+                showFloatingPopup('-1 ❤️', 'text-red-500', clickX, clickY);
+
+                const correctTypeName = ZINSDEEL_TYPES[q.targetInfo.type]?.name || q.targetInfo.label;
+                showFeedback(`❌ HET JUISTE ANTWOORD WAS: ${correctTypeName.toUpperCase()}`, 'bg-red-600/90 text-white border-2 border-red-300');
+
+                if (gameState.lives <= 0) {
+                    gameState.lives = 0;
+                    updateStatsUI();
+                    setTimeout(() => {
+                        endGame("Geen Levens Meer! 💔", "Helaas, de 3 levens zijn op. Probeer het opnieuw!");
+                    }, 1200);
+                    return;
+                }
+            }
+
+            updateStatsUI();
+            setTimeout(loadNextQuestion, isCorrect ? 900 : 1800);
+        }
+
+        function showFeedback(text, bgClasses) {
+            ui.feedbackBanner.className = `p-4 rounded-2xl text-center font-display font-bold text-base shadow-xl ${bgClasses}`;
+            ui.feedbackBanner.innerText = text;
+            ui.feedbackBanner.classList.remove('hidden');
+        }
+
+        function hideFeedback() {
+            ui.feedbackBanner.classList.add('hidden');
+        }
+
+        function endGame(title, subtitle) {
+            gameState.active = false;
+            clearInterval(gameState.timerInterval);
+
+            // Calculate Accuracy
+            const accuracy = gameState.totalQuestions > 0 
+                ? Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100) 
+                : 0;
+
+            ui.finalScore.innerText = gameState.score.toLocaleString();
+            ui.finalLevel.innerText = gameState.level;
+            ui.finalStreak.innerText = `${gameState.maxStreak}x`;
+            ui.finalAccuracy.innerText = `${accuracy}%`;
+
+            document.getElementById('endTitle').innerText = title;
+            document.getElementById('endSubtitle').innerText = subtitle;
+
+            // Big Confetti burst for high scores
+            spawnBurst(window.innerWidth / 2, window.innerHeight / 3, 100);
+
+            // Switch Screen Views
+            ui.gamePlayScreen.classList.add('hidden');
+            ui.gamePlayScreen.classList.remove('flex');
+            ui.gameOverScreen.classList.remove('hidden');
+        }
+
+        // Leaderboard Handler Functions
+        async function handleScoreSubmit(e) {
+            e.preventDefault();
+            const name = ui.playerNameInput.value.trim();
+            if (!name) return;
+
+            ui.btnSubmitScore.disabled = true;
+            ui.btnSubmitScore.style.opacity = '0.5';
+            ui.saveStatusMsg.innerText = "Opslaan op server... ⏳";
+            ui.saveStatusMsg.classList.remove('hidden');
+
+            const success = await window.saveScoreToLeaderboard(
+                name,
+                gameState.score,
+                gameState.level,
+                gameState.maxStreak
+            );
+
+            if (success) {
+                ui.saveStatusMsg.innerText = "✅ Score succesvol opgeslagen!";
+                ui.saveStatusMsg.className = "text-xs font-semibold mt-2 text-emerald-400";
+                setTimeout(() => {
+                    openLeaderboard();
+                }, 1000);
+            } else {
+                ui.saveStatusMsg.innerText = "⚠️ Offline opgeslagen of verbinding mislukt.";
+                ui.saveStatusMsg.className = "text-xs font-semibold mt-2 text-amber-400";
+            }
+        }
+
+        function openLeaderboard() {
+            ui.startScreen.classList.add('hidden');
+            ui.gameOverScreen.classList.add('hidden');
+            ui.gamePlayScreen.classList.add('hidden');
+            ui.gamePlayScreen.classList.remove('flex');
+            ui.leaderboardScreen.classList.remove('hidden');
+
+            ui.leaderboardLoading.classList.remove('hidden');
+            ui.leaderboardTable.classList.add('hidden');
+
+            // Render live highscores from Firestore
+            window.listenLeaderboard((scores) => {
+                ui.leaderboardLoading.classList.add('hidden');
+                ui.leaderboardTable.classList.remove('hidden');
+                ui.leaderboardBody.innerHTML = '';
+
+                if (scores.length === 0) {
+                    ui.leaderboardBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="py-6 text-center text-slate-400 text-xs">
+                                Nog geen scores opgeslagen. Wees de eerste! 🚀
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                scores.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.className = index % 2 === 0 ? 'bg-slate-900/40' : 'bg-slate-800/20';
+
+                    let badge = `#${index + 1}`;
+                    if (index === 0) badge = '🥇 1';
+                    if (index === 1) badge = '🥈 2';
+                    if (index === 2) badge = '🥉 3';
+
+                    row.innerHTML = `
+                        <td class="py-3 px-4 font-bold text-amber-300 text-xs">${badge}</td>
+                        <td class="py-3 px-4 font-bold text-white">${escapeHtml(item.name || 'Anoniem')}</td>
+                        <td class="py-3 px-4 text-center text-indigo-300 font-semibold text-xs">Lvl ${item.level || 1}</td>
+                        <td class="py-3 px-4 text-right font-display font-bold text-emerald-400">${Number(item.score || 0).toLocaleString()}</td>
+                    `;
+                    ui.leaderboardBody.appendChild(row);
+                });
+            });
+        }
+
+        function closeLeaderboard() {
+            ui.leaderboardScreen.classList.add('hidden');
+            if (gameState.active) {
+                ui.gamePlayScreen.classList.remove('hidden');
+                ui.gamePlayScreen.classList.add('flex');
+            } else {
+                ui.startScreen.classList.remove('hidden');
+            }
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+    </script>
+</body>
+</html>
