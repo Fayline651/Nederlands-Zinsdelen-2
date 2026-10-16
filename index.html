@@ -593,9 +593,9 @@
         };
 
         const SENTENCE_DATABASE = [
-            // Level 1: Basiszinnen
+            // Level 1: Basiszinnen (Iets uitgebreid)
             {
-                chunks: ["De slimme kat", "vliegt", "morgen", "naar de maan"],
+                chunks: ["De slimme kat uit de straat", "vliegt", "morgenochtend vroeg", "naar de maan"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -605,7 +605,7 @@
                 levelMin: 1
             },
             {
-                chunks: ["Meteen na de pauze", "vond", "het kleine broertje van de uitvinder", "de verloren sleutel"],
+                chunks: ["Meteen na de lange pauze", "vond", "het kleine broertje van de uitvinder", "de verloren sleutel"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -615,7 +615,7 @@
                 levelMin: 1
             },
             {
-                chunks: ["De strenge leraar", "legt", "elke ochtend", "de moeilijke regels", "uit"],
+                chunks: ["De strenge leraar Nederlands", "legt", "elke ochtend voor de klas", "de moeilijke regels", "uit"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -626,7 +626,7 @@
                 levelMin: 1
             },
             {
-                chunks: ["Gisteravond", "las", "mijn lieve opa", "een spannend boek", "in de stoel"],
+                chunks: ["Gisteravond laat", "las", "mijn lieve opa", "een spannend boek over de maatschappij", "in zijn luie stoel"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -637,7 +637,7 @@
                 levelMin: 1
             },
             {
-                chunks: ["De vrolijke hond", "blafte", "hard", "naar het publiek"],
+                chunks: ["De vrolijke hond uit de buurt", "blafte", "heel luidruchtig", "naar het publiek"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -647,7 +647,7 @@
                 levelMin: 1
             },
             {
-                chunks: ["Vanochtend", "dronk", "de dorstige atleet", "een groot glas water"],
+                chunks: ["Vanochtend voor de les", "dronk", "de dorstige atleet", "een heel groot glas water"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -657,7 +657,7 @@
                 levelMin: 1
             },
             {
-                chunks: ["De jonge muzikant", "speelde", "prachtig", "op zijn nieuwe gitaar"],
+                chunks: ["De jonge en talentvolle muzikant", "speelde", "ontzettend mooi", "op zijn nieuwe gitaar"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -667,20 +667,19 @@
                 levelMin: 1
             },
             {
-                chunks: ["In het park", "rennen", "de kleine kinderen", "vrolijk", "rond"],
+                chunks: ["In het grote stadspark", "rennen", "de enthousiaste kinderen", "vrolijk achter de bal aan"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
                     2: { type: 'OW', label: 'Onderwerp' },
-                    3: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
-                    4: { type: 'BWB', label: 'Bijwoordelijke bepaling' }
+                    3: { type: 'BWB', label: 'Bijwoordelijke bepaling' }
                 },
                 levelMin: 1
             },
 
             // Level 2: Meewerkend voorwerp (MV) & Werkwoordelijk gezegde (WG)
             {
-                chunks: ["De enthousiaste docent", "gaf", "gistermiddag", "alle studenten", "een moeilijke opdracht"],
+                chunks: ["De enthousiaste docent informatica", "gaf", "gistermiddag na de les", "alle studenten", "een uitdagende opdracht"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -691,7 +690,7 @@
                 levelMin: 2
             },
             {
-                chunks: ["In de grote pauze", "stuurde", "Sofie", "haar beste vriendin", "een leuk berichtje"],
+                chunks: ["Tijdens de grote pauze", "stuurde", "Sofie", "haar beste vriendin op school", "een heel leuk berichtje"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -702,7 +701,7 @@
                 levelMin: 2
             },
             {
-                chunks: ["De vriendelijke buren", "leenden", "ons", "hun grasmaaier", "voor een dag"],
+                chunks: ["Onze erg vriendelijke buren", "leenden", "ons gezin", "hun gloednieuwe grasmaaier", "voor een hele dag"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -713,7 +712,7 @@
                 levelMin: 2
             },
             {
-                chunks: ["De leerlingen", "hebben", "de grammatica", "goed geleerd"],
+                chunks: ["De gemotiveerde leerlingen uit klas vier", "hebben", "de moeilijke grammaticastof", "volledig en goed geleerd"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'WG', label: 'Werkwoordelijk gezegde' },
@@ -723,7 +722,7 @@
                 levelMin: 2
             },
             {
-                chunks: ["Wij", "zouden", "vandaag", "een mooie game", "maken"],
+                chunks: ["Wij", "zouden", "vandaag tijdens de les", "een heel mooie webgame", "gaan maken"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'WG', label: 'Werkwoordelijk gezegde' },
@@ -734,7 +733,7 @@
                 levelMin: 2
             },
             {
-                chunks: ["De snelle keeper", "stopte", "vol overgave", "de gevaarlijke bal"],
+                chunks: ["De snelle keeper van het team", "stopte", "met een geweldige duik", "de gevaarlijke bal van de tegenstander"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -744,7 +743,7 @@
                 levelMin: 2
             },
             {
-                chunks: ["Vorige week", "kocht", "mijn zus", "een mooie rode fiets", "in de winkel"],
+                chunks: ["Vorige week in de stad", "kocht", "mijn oudere zus", "een prachtige rode fiets", "in de winkel"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -755,7 +754,7 @@
                 levelMin: 2
             },
             {
-                chunks: ["De postbode", "overhandigde", "de bewoner", "het belangrijke pakketje"],
+                chunks: ["De vriendelijke postbode", "overhandigde", "de blije bewoner", "het erg belangrijke pakketje"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -765,18 +764,9 @@
                 levelMin: 2
             },
 
-            // Level 3: Naamwoordelijk gezegde (NG) & uitdaging
+            // Level 3: Naamwoordelijk gezegde (NG) & Uitdagendere structuren
             {
-                chunks: ["Jullie webgame", "is", "ontzettend leerzaam"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'NG', label: 'Naamwoordelijk gezegde' },
-                    2: { type: 'NG', label: 'Naamwoordelijk gezegde' }
-                },
-                levelMin: 3
-            },
-            {
-                chunks: ["De oefening", "bleek", "achteraf", "best eenvoudig"],
+                chunks: ["Jullie nieuwe en interactieve webgame", "is", "volgens de docenten", "ontzettend leerzaam en geslaagd"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'NG', label: 'Naamwoordelijk gezegde' },
@@ -786,7 +776,17 @@
                 levelMin: 3
             },
             {
-                chunks: ["Vol vreugde", "toonde", "de kunstenaar", "het publiek", "zijn nieuwe meesterwerk"],
+                chunks: ["De ingewikkelde grammatica-oefening op het bord", "bleek", "achteraf voor iedereen", "best wel eenvoudig"],
+                analysis: {
+                    0: { type: 'OW', label: 'Onderwerp' },
+                    1: { type: 'NG', label: 'Naamwoordelijk gezegde' },
+                    2: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
+                    3: { type: 'NG', label: 'Naamwoordelijk gezegde' }
+                },
+                levelMin: 3
+            },
+            {
+                chunks: ["Vol trots en vreugde", "toonde", "de bekende kunstenaar", "het enthousiaste publiek", "zijn gloednieuwe meesterwerk"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -797,7 +797,7 @@
                 levelMin: 3
             },
             {
-                chunks: ["De bekende speler", "scoorde", "in de laatste minuut", "het beslissende doelpunt"],
+                chunks: ["De zeer ervaren speler", "scoorde", "in de allerlaatste minuut van de wedstrijd", "het beslissende doelpunt"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -807,7 +807,7 @@
                 levelMin: 3
             },
             {
-                chunks: ["Aan het einde van de dag", "schenkt", "de gastvrouw", "alle bezoekers", "warme chocolademelk"],
+                chunks: ["Aan het einde van een lange dag", "schenkt", "de vriendelijke gastvrouw", "alle hongerige bezoekers", "warme chocolademelk"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -818,17 +818,18 @@
                 levelMin: 3
             },
             {
-                chunks: ["Elke harde werker", "wordt", "uiteindelijk", "een echte kampioen"],
+                chunks: ["Elke hardwerkende en gedreven scholier", "wordt", "met voldoende oefening", "uiteindelijk", "een echte kampioen in ontleden"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'NG', label: 'Naamwoordelijk gezegde' },
                     2: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
-                    3: { type: 'NG', label: 'Naamwoordelijk gezegde' }
+                    3: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
+                    4: { type: 'NG', label: 'Naamwoordelijk gezegde' }
                 },
                 levelMin: 3
             },
             {
-                chunks: ["Na een lange zoektocht", "vonden", "de ontdekkingsreizigers", "een verborgen schat", "in de grot"],
+                chunks: ["Na een lange en zware zoektocht", "vonden", "de dappere ontdekkingsreizigers", "een verborgen schat", "diep in de oude grot"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -839,7 +840,7 @@
                 levelMin: 3
             },
             {
-                chunks: ["Met veel geduld", "geeft", "de meester", "de jonge leerlingen", "extra uitleg"],
+                chunks: ["Met erg veel geduld en aandacht", "geeft", "de ervaren leerkracht", "de jonge leerlingen uit de klas", "extra uitleg"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
@@ -850,7 +851,7 @@
                 levelMin: 3
             },
             {
-                chunks: ["Zonder enige twijfel", "beantwoordde", "de kandidaat", "de moeilijke vraag", "foutloos"],
+                chunks: ["Zonder ook maar enige twijfel", "beantwoordde", "de voorbereide kandidaat", "de ontzettend moeilijke vraag", "helemaal foutloos"],
                 analysis: {
                     0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
