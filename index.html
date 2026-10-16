@@ -133,13 +133,13 @@
         <!-- ================= START SCREEN ================= -->
         <div id="startScreen" class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-10 text-center glow-card my-auto">
             <div class="inline-block bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                🚀 De Ulitieme Grammatica Challenge
+                🚀 De Ultieme Grammatica Challenge
             </div>
             <h2 class="font-display text-3xl sm:text-5xl font-extrabold text-white mb-4 leading-tight">
                 Hoe snel kun jij <br><span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">zinsdelen ontleden?</span>
             </h2>
             <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-                Herken de persoonsvorm, het onderwerp, lijdend voorwerp, bijwoordelijke bepaling en nog veel meer! Bouw mega-combos, overleef 5 minuten en strijd voor de #1 plek op de ranglijst.
+                Herken de persoonsvorm, het onderwerp, het lijdend voorwerp, de bijwoordelijke bepaling en nog veel meer! Bouw mega-combos, overleef 5 minuten en strijd voor de #1 plek op de ranglijst.
             </p>
 
             <!-- Rules Summary -->
@@ -161,7 +161,7 @@
                 <div class="bg-slate-900/60 border border-slate-700/50 p-3.5 rounded-2xl flex items-center gap-3">
                     <span class="text-2xl">⚡</span>
                     <div>
-                        <strong class="block text-white font-bold">Oneindig Levels</strong>
+                        <strong class="block text-white font-bold">Levels</strong>
                         <span class="text-slate-400">Zinnen worden steeds uitdagender.</span>
                     </div>
                 </div>
@@ -248,7 +248,7 @@
             <!-- Submit Highscore Form -->
             <div id="submitScoreBox" class="bg-slate-900/90 border border-indigo-500/30 p-5 rounded-2xl mb-8 text-left">
                 <h3 class="font-display font-bold text-white text-base mb-2">🏆 Plaats je score op het Rangbord</h3>
-                <p class="text-xs text-slate-400 mb-4">Vul je naam in om mee te dingen voor de hoogste positie van alle spelers.</p>
+                <p class="text-xs text-slate-400 mb-4">Vul je naam in om mee te dingen voor de hoogste positie.</p>
                 
                 <form id="scoreForm" class="flex flex-col sm:flex-row gap-3">
                     <input type="text" id="playerNameInput" placeholder="Jouw Naam of GamerTag..." maxlength="20" required class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium text-sm">
@@ -270,14 +270,14 @@
             </div>
         </div>
 
-        <!-- ================= LEADERBOARD MODAL / SCREEN ================= -->
+        <!-- ================= LEADERBOARD SCREEN ================= -->
         <div id="leaderboardScreen" class="hidden bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 text-center glow-card my-auto">
             <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
                 <div class="flex items-center gap-3">
                     <span class="text-3xl">🏆</span>
                     <div class="text-left">
                         <h2 class="font-display text-2xl font-bold text-white">Wereldwijde Ranglijst</h2>
-                        <p class="text-xs text-slate-400">Beste Nederlands Zinsdelen spelers aller tijden</p>
+                        <p class="text-xs text-slate-400">Beste Nederlands Zinsdelen spelers</p>
                     </div>
                 </div>
                 <button id="btnCloseLeaderboard" class="bg-slate-700 hover:bg-slate-600 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg cursor-pointer">
@@ -321,7 +321,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration Guard
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'nederlands-zinsdelen';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "demo-key",
@@ -341,7 +340,6 @@
             auth = getAuth(app);
             db = getFirestore(app);
 
-            // Authenticate safely
             const initAuth = async () => {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -352,19 +350,17 @@
                         user = userCred.user;
                     }
                 } catch (e) {
-                    console.warn("Auth initialization error, offline fallback ready:", e);
+                    console.warn("Auth initialization error:", e);
                 }
             };
             initAuth();
         } catch (e) {
-            console.warn("Firebase not configured or running offline:", e);
+            console.warn("Firebase offline mode:", e);
         }
 
-        // Leaderboard Firebase Firestore Functions
         async function saveScoreToLeaderboard(playerName, score, level, streak) {
             if (!db || !auth) return false;
             try {
-                // Rule 1: STRICT PATH /artifacts/{appId}/public/data/{collectionName}
                 const leaderboardRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
                 await addDoc(leaderboardRef, {
                     name: playerName,
@@ -386,23 +382,19 @@
                 return;
             }
             try {
-                // Rule 1: STRICT PATH
                 const leaderboardRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
-                // Rule 2: NO COMPLEX QUERIES - fetch simple collection and sort in memory JS
                 onSnapshot(leaderboardRef, (snapshot) => {
                     const scores = [];
                     snapshot.forEach((doc) => {
                         scores.push({ id: doc.id, ...doc.data() });
                     });
-                    // Sort in memory by score descending
                     scores.sort((a, b) => (b.score || 0) - (a.score || 0));
-                    callback(scores.slice(0, 50)); // Top 50
+                    callback(scores.slice(0, 50));
                 }, (error) => {
-                    console.error("Leaderboard snapshot error:", error);
+                    console.error("Leaderboard error:", error);
                     callback([]);
                 });
             } catch (e) {
-                console.error("Leaderboard listener failed:", e);
                 callback([]);
             }
         }
@@ -412,12 +404,10 @@
     </script>
 
     <script>
-        /* Web Audio Synthesizer for Zero-Dependency Arcade SFX */
         class AudioSynth {
             constructor() {
                 this.ctx = null;
             }
-
             init() {
                 if (!this.ctx) {
                     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -426,77 +416,61 @@
                     this.ctx.resume();
                 }
             }
-
             playCorrect() {
                 this.init();
                 if (!this.ctx) return;
                 const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now); // C5
-                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
-                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
-
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
                 gain.gain.setValueAtTime(0.15, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-
                 osc.start(now);
                 osc.stop(now + 0.35);
             }
-
             playWrong() {
                 this.init();
                 if (!this.ctx) return;
                 const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, now); // A3
-                osc.frequency.exponentialRampToValueAtTime(130.81, now + 0.25); // C3
-
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(130.81, now + 0.25);
                 gain.gain.setValueAtTime(0.2, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-
                 osc.start(now);
                 osc.stop(now + 0.3);
             }
-
             playCombo(multiplier) {
                 this.init();
                 if (!this.ctx) return;
                 const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-
                 const baseFreq = 400 + Math.min(multiplier * 100, 800);
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(baseFreq, now);
                 osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.15);
-
                 gain.gain.setValueAtTime(0.2, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-
                 osc.start(now);
                 osc.stop(now + 0.25);
             }
-
             playLevelUp() {
                 this.init();
                 if (!this.ctx) return;
                 const now = this.ctx.currentTime;
-                const notes = [440, 554.37, 659.25, 880]; // A major chord arpeggio
+                const notes = [440, 554.37, 659.25, 880];
                 notes.forEach((freq, idx) => {
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
@@ -511,12 +485,10 @@
                 });
             }
         }
-
         const audioSynth = new AudioSynth();
     </script>
 
     <script>
-        /* Canvas Particle & Confetti Engine */
         const canvas = document.getElementById('effectsCanvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -542,7 +514,6 @@
                 this.rotation = Math.random() * 360;
                 this.vRot = (Math.random() - 0.5) * 10;
             }
-
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
@@ -550,7 +521,6 @@
                 this.alpha -= this.decay;
                 this.rotation += this.vRot;
             }
-
             draw(ctx) {
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, this.alpha);
@@ -612,403 +582,159 @@
     </script>
 
     <script>
-        /* High-Variety Dutch Grammar & Sentence Bank Generator */
-        
-        // Zinsdelen Definition Catalog
         const ZINSDEEL_TYPES = {
             PV: { code: 'pv', name: 'Persoonsvorm (PV)', desc: 'Het vervoegde werkwoord dat verandert bij tijd/getal' },
             OW: { code: 'ow', name: 'Onderwerp (OW)', desc: 'Wie of wat doet de handeling?' },
-            WG: { code: 'wg', name: 'Werkwoordelijk Gegzegde (WG)', desc: 'Alle werkwoorden in de zin samen' },
-            NG: { code: 'ng', name: 'Naamwoordelijk Gegzegde (NG)', desc: 'Koppelwerkwoord + naamwoordelijk deel' },
-            LV: { code: 'lv', name: 'Lijdend Voorwerp (LV)', desc: 'Wie of wat ondergaat de werking?' },
-            MV: { code: 'mv', name: 'Meewerkend Voorwerp (MV)', desc: 'Aan/voor wie wordt iets gedaan/gegeven?' },
-            BWB: { code: 'bwb', name: 'Bijwoordelijke Bepaling (BWB)', desc: 'Schaft info over tijd, plaats, wijze, reden' },
-            BVB: { code: 'bvb', name: 'Bijvoeglijke Bepaling (BVB)', desc: 'Zegt iets over een zelfstandig naamwoord' },
+            WG: { code: 'wg', name: 'Werkwoordelijk gezegde (WG)', desc: 'Alle werkwoorden in de zin samen' },
+            NG: { code: 'ng', name: 'Naamwoordelijk gezegde (NG)', desc: 'Koppelwerkwoord + naamwoordelijk deel' },
+            LV: { code: 'lv', name: 'Lijdend voorwerp (LV)', desc: 'Wie of wat ondergaat de werking?' },
+            MV: { code: 'mv', name: 'Meewerkend voorwerp (MV)', desc: 'Aan/voor wie wordt iets gedaan/gegeven?' },
+            BWB: { code: 'bwb', name: 'Bijwoordelijke bepaling (BWB)', desc: 'Schaft info over tijd, plaats, wijze, reden' },
+            BVB: { code: 'bvb', name: 'Bijvoeglijke bepaling (BVB)', desc: 'Zegt iets over een zelfstandig naamwoord' },
             VV: { code: 'vv', name: 'Voorzetselvoorwerp (VV)', desc: 'Vast voorzetsel gekoppeld aan het werkwoord' }
         };
 
-        // Rich Sentence Template Database
         const SENTENCE_DATABASE = [
-            // Level 1-2: Basic Sentences (PV, OW, LV, BWB)
             {
                 chunks: ["De nieuwsgierige kat", "vliegt", "morgen", "naar de maan"],
                 analysis: {
                     0: { type: 'OW', label: 'Onderwerp' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
+                    2: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
+                    3: { type: 'BWB', label: 'Bijwoordelijke bepaling' }
                 },
                 levelMin: 1
             },
             {
                 chunks: ["Gisteravond", "las", "de enthousiaste leraar", "een spannend boek", "in de bibliotheek"],
                 analysis: {
-                    0: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
                     2: { type: 'OW', label: 'Onderwerp' },
-                    3: { type: 'LV', label: 'Lijdend Voorwerp' },
-                    4: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
+                    3: { type: 'LV', label: 'Lijdend voorwerp' },
+                    4: { type: 'BWB', label: 'Bijwoordelijke bepaling' }
                 },
                 levelMin: 1
             },
             {
-                chunks: ["Onze getalenteerde kok", "bakt", "elke ochtend", "verse broodjes"],
+                chunks: ["Meteen na de pauze", "vond", "het kleine broertje van de uitvinder", "de verloren sleutel"],
                 analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    3: { type: 'LV', label: 'Lijdend Voorwerp' }
-                },
-                levelMin: 1
-            },
-            {
-                chunks: ["De vrolijke kinderen", "spelen", "enthousiast", "in de tuin"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
-                },
-                levelMin: 1
-            },
-
-            // Level 2-4: Indirect Objects & Verbal Predicates (MV, WG)
-            {
-                chunks: ["Oma", "geeft", "haar lieve kleinkind", "een prachtig cadeautje"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
-                    3: { type: 'LV', label: 'Lijdend Voorwerp' }
-                },
-                levelMin: 2
-            },
-            {
-                chunks: ["De burgemeester", "reikte", "de heldhaftige redder", "een medaille", "uit"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
-                    3: { type: 'LV', label: 'Lijdend Voorwerp' },
-                    4: { type: 'WG', label: 'Werkwoordelijk Gegzegde' }
-                },
-                levelMin: 2
-            },
-            {
-                chunks: ["Mijn beste vriend", "heeft", "mij", "gisteren", "gebelijk geholpen"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
-                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    4: { type: 'WG', label: 'Werkwoordelijk Gegzegde' }
-                },
-                levelMin: 2
-            },
-            {
-                chunks: ["De ober", "serveerde", "de hongerige gasten", "een heerlijke maaltijd"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'MV', label: 'Meewerkend Voorwerp' },
-                    3: { type: 'LV', label: 'Lijdend Voorwerp' }
-                },
-                levelMin: 2
-            },
-
-            // Level 3-5+: Nominal Predicates & Prepositional Objects (NG, VV, BVB)
-            {
-                chunks: ["Die ervaren astronaut", "is", "heel erg trots op haar prestatie"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'NG', label: 'Naamwoordelijk Gegzegde' }
-                },
-                levelMin: 3
-            },
-            {
-                chunks: ["De fanatieke sporters", "wachten", "al uren", "op het verlossende eindsignaal"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    3: { type: 'VV', label: 'Voorzetselvoorwerp' }
-                },
-                levelMin: 3
-            },
-            {
-                chunks: ["De slimme studente", "twijfelt", "nooit", "aan haar talent"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    3: { type: 'VV', label: 'Voorzetselvoorwerp' }
-                },
-                levelMin: 3
-            },
-            {
-                chunks: ["Tijdens de storm", "is", "de oude eikenboom", "in de tuin", "omgewaaid"],
-                analysis: {
-                    0: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
+                    0: { type: 'BWB', label: 'Bijwoordelijke bepaling' },
                     1: { type: 'PV', label: 'Persoonsvorm' },
                     2: { type: 'OW', label: 'Onderwerp' },
-                    3: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    4: { type: 'WG', label: 'Werkwoordelijk Gegzegde' }
+                    3: { type: 'LV', label: 'Lijdend voorwerp' }
                 },
-                levelMin: 3
-            },
-            {
-                chunks: ["Onze docent Nederlands", "blijft", "altijd", "vrolijk en geduldig"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    3: { type: 'NG', label: 'Naamwoordelijk Gegzegde' }
-                },
-                levelMin: 4
-            },
-            {
-                chunks: ["De jonge muzikant", "droomt", "al jaren", "van een wereldtournee"],
-                analysis: {
-                    0: { type: 'OW', label: 'Onderwerp' },
-                    1: { type: 'PV', label: 'Persoonsvorm' },
-                    2: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                    3: { type: 'VV', label: 'Voorzetselvoorwerp' }
-                },
-                levelMin: 4
+                levelMin: 1
             }
         ];
 
-        // Procedural Generator for Infinite Scale Beyond Template Bank
-        function generateProceduralSentence(level) {
-            const subjects = ["de slimme detective", "een razendsnelle coureur", "onze vriendelijke buurman", "de beroemde kunstenaar", "een hongerige kat", "de uitvinder"];
-            const verbsPV = ["zoekt", "vond", "geeft", "stuurt", "bouwt", "tekent"];
-            const objectsLV = ["een geheim raadsel", "de verloren sleutel", "een waardevol schilderij", "een nieuwe robot", "een smakelijke snack"];
-            const objectsMV = ["voor zijn beste vriend", "de enthousiaste publiek", "haar kleine broertje", "de burgemeester"];
-            const adverbialTime = ["gistermiddag", "tijdens het festival", "om stipt acht uur", "meteen na de pauze", "onverwachts"];
-            const adverbialPlace = ["in de oude stad", "op het drukke plein", "in het laboratorium", "onder de brug"];
-
-            const sub = subjects[Math.floor(Math.random() * subjects.length)];
-            const pv = verbsPV[Math.floor(Math.random() * verbsPV.length)];
-            const lv = objectsLV[Math.floor(Math.random() * objectsLV.length)];
-            const mv = objectsMV[Math.floor(Math.random() * objectsMV.length)];
-            const bwbTime = adverbialTime[Math.floor(Math.random() * adverbialTime.length)];
-            const bwbPlace = adverbialPlace[Math.floor(Math.random() * adverbialPlace.length)];
-
-            // Randomize order pattern
-            const patterns = [
-                {
-                    chunks: [bwbTime, pv, sub, mv, lv],
-                    analysis: {
-                        0: { type: 'BWB', label: 'Bijwoordelijke Bepaling' },
-                        1: { type: 'PV', label: 'Persoonsvorm' },
-                        2: { type: 'OW', label: 'Onderwerp' },
-                        3: { type: 'MV', label: 'Meewerkend Voorwerp' },
-                        4: { type: 'LV', label: 'Lijdend Voorwerp' }
-                    }
-                },
-                {
-                    chunks: [sub, pv, mv, lv, bwbPlace],
-                    analysis: {
-                        0: { type: 'OW', label: 'Onderwerp' },
-                        1: { type: 'PV', label: 'Persoonsvorm' },
-                        2: { type: 'MV', label: 'Meewerkend Voorwerp' },
-                        3: { type: 'LV', label: 'Lijdend Voorwerp' },
-                        4: { type: 'BWB', label: 'Bijwoordelijke Bepaling' }
-                    }
-                }
-            ];
-
-            return patterns[Math.floor(Math.random() * patterns.length)];
-        }
-    </script>
-
-    <script>
-        /* Core Game State Engine */
-        const GAME_DURATION = 300; // 5 Minutes = 300 Seconds
-        const MAX_LIVES = 3;
-
         let gameState = {
-            active: false,
+            screen: 'start',
             score: 0,
             level: 1,
-            lives: MAX_LIVES,
-            timeLeft: GAME_DURATION,
+            lives: 3,
+            timeLeft: 300,
+            timerInterval: null,
             streak: 0,
             maxStreak: 0,
-            correctAnswers: 0,
-            totalQuestions: 0,
-            timerInterval: null,
-            currentQuestion: null
+            correctCount: 0,
+            totalAnswered: 0,
+            currentQuestion: null,
+            selectedChunkIndex: null
         };
 
-        // UI Element References
-        const ui = {
-            startScreen: document.getElementById('startScreen'),
-            gamePlayScreen: document.getElementById('gamePlayScreen'),
-            gameOverScreen: document.getElementById('gameOverScreen'),
-            leaderboardScreen: document.getElementById('leaderboardScreen'),
-            
-            // Stats
-            statLevel: document.getElementById('statLevel'),
-            statTimer: document.getElementById('statTimer'),
-            statScore: document.getElementById('statScore'),
-            statLives: document.getElementById('statLives'),
-            comboContainer: document.getElementById('comboContainer'),
-            comboMultiplier: document.getElementById('comboMultiplier'),
-            comboBar: document.getElementById('comboBar'),
+        const startScreen = document.getElementById('startScreen');
+        const gamePlayScreen = document.getElementById('gamePlayScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const leaderboardScreen = document.getElementById('leaderboardScreen');
 
-            // Question components
-            questionCategory: document.getElementById('questionCategory'),
-            questionPrompt: document.getElementById('questionPrompt'),
-            sentenceContainer: document.getElementById('sentenceDisplayContainer'),
-            optionsGrid: document.getElementById('optionsGrid'),
-            controlsInstruction: document.getElementById('controlsInstruction'),
-            feedbackBanner: document.getElementById('feedbackBanner'),
-
-            // End game stats
-            finalScore: document.getElementById('finalScore'),
-            finalLevel: document.getElementById('finalLevel'),
-            finalStreak: document.getElementById('finalStreak'),
-            finalAccuracy: document.getElementById('finalAccuracy'),
-            playerNameInput: document.getElementById('playerNameInput'),
-            scoreForm: document.getElementById('scoreForm'),
-            btnSubmitScore: document.getElementById('btnSubmitScore'),
-            saveStatusMsg: document.getElementById('saveStatusMsg'),
-
-            // Leaderboard
-            leaderboardLoading: document.getElementById('leaderboardLoading'),
-            leaderboardTable: document.getElementById('leaderboardTable'),
-            leaderboardBody: document.getElementById('leaderboardBody')
-        };
-
-        // Event Listeners Setup
         document.getElementById('btnStartGame').addEventListener('click', startGame);
         document.getElementById('btnPlayAgain').addEventListener('click', startGame);
-        document.getElementById('btnOpenLeaderboard').addEventListener('click', openLeaderboard);
-        document.getElementById('btnViewLeaderboardEnd').addEventListener('click', openLeaderboard);
-        document.getElementById('btnCloseLeaderboard').addEventListener('click', closeLeaderboard);
-        document.getElementById('btnBackToStart').addEventListener('click', closeLeaderboard);
-        ui.scoreForm.addEventListener('submit', handleScoreSubmit);
+        document.getElementById('btnOpenLeaderboard').addEventListener('click', () => showScreen('leaderboard'));
+        document.getElementById('btnViewLeaderboardEnd').addEventListener('click', () => showScreen('leaderboard'));
+        document.getElementById('btnCloseLeaderboard').addEventListener('click', () => showScreen('start'));
+        document.getElementById('btnBackToStart').addEventListener('click', () => showScreen('start'));
+
+        function showScreen(name) {
+            startScreen.classList.add('hidden');
+            gamePlayScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            leaderboardScreen.classList.add('hidden');
+
+            if (name === 'start') startScreen.classList.remove('hidden');
+            if (name === 'play') {
+                gamePlayScreen.classList.remove('hidden');
+                gamePlayScreen.classList.add('flex');
+            }
+            if (name === 'gameover') gameOverScreen.classList.remove('hidden');
+            if (name === 'leaderboard') {
+                leaderboardScreen.classList.remove('hidden');
+                loadLeaderboardData();
+            }
+        }
 
         function startGame() {
-            audioSynth.init();
+            gameState.score = 0;
+            gameState.level = 1;
+            gameState.lives = 3;
+            gameState.timeLeft = 300;
+            gameState.streak = 0;
+            gameState.maxStreak = 0;
+            gameState.correctCount = 0;
+            gameState.totalAnswered = 0;
 
-            // Reset Game State
-            gameState = {
-                active: true,
-                score: 0,
-                level: 1,
-                lives: MAX_LIVES,
-                timeLeft: GAME_DURATION,
-                streak: 0,
-                maxStreak: 0,
-                correctAnswers: 0,
-                totalQuestions: 0,
-                timerInterval: null,
-                currentQuestion: null
-            };
-
-            // Switch Screen Views
-            ui.startScreen.classList.add('hidden');
-            ui.gameOverScreen.classList.add('hidden');
-            ui.leaderboardScreen.classList.add('hidden');
-            ui.gamePlayScreen.classList.remove('hidden');
-            ui.gamePlayScreen.classList.add('flex');
-
-            // Reset Form Status
-            ui.btnSubmitScore.disabled = false;
-            ui.btnSubmitScore.style.opacity = '1';
-            ui.saveStatusMsg.classList.add('hidden');
-
-            updateStatsUI();
-
-            // Start 5 Minute Countdown
-            clearInterval(gameState.timerInterval);
-            gameState.timerInterval = setInterval(tickTimer, 1000);
-
-            // Load First Question
+            updateHUD();
+            showScreen('play');
+            startTimer();
             loadNextQuestion();
         }
 
-        function tickTimer() {
-            if (!gameState.active) return;
-            gameState.timeLeft--;
-
-            if (gameState.timeLeft <= 0) {
-                gameState.timeLeft = 0;
-                endGame("Tijd is om! ⏱️", "De 5 minuten zijn voorbij. Bekijk je geweldige score!");
-                return;
-            }
-
-            updateTimerUI();
+        function startTimer() {
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateHUD();
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    endGame("Tijd is om!");
+                }
+            }, 1000);
         }
 
-        function updateTimerUI() {
+        function updateHUD() {
+            document.getElementById('statLevel').innerText = gameState.level;
+            document.getElementById('statScore').innerText = gameState.score;
+            
             const mins = Math.floor(gameState.timeLeft / 60);
             const secs = gameState.timeLeft % 60;
-            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            ui.statTimer.innerText = formatted;
+            document.getElementById('statTimer').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
-            if (gameState.timeLeft <= 30) {
-                ui.statTimer.className = 'font-display text-lg font-bold text-red-400 animate-pulse-fast';
-            } else {
-                ui.statTimer.className = 'font-display text-lg font-bold text-emerald-400';
-            }
-        }
+            const livesContainer = document.getElementById('statLives');
+            livesContainer.innerHTML = '❤️'.repeat(Math.max(0, gameState.lives)) + '🖤'.repeat(Math.max(0, 3 - gameState.lives));
 
-        function updateStatsUI() {
-            ui.statScore.innerText = gameState.score.toLocaleString();
-            ui.statLevel.innerText = gameState.level;
-            
-            // Render Hearts
-            let hearts = '';
-            for (let i = 0; i < MAX_LIVES; i++) {
-                hearts += i < gameState.lives ? '❤️' : '🖤';
-            }
-            ui.statLives.innerHTML = hearts;
-
-            // Render Combo Streak Bar
+            const comboCont = document.getElementById('comboContainer');
             if (gameState.streak >= 2) {
-                ui.comboContainer.style.opacity = '1';
-                ui.comboMultiplier.innerText = `${Math.min(gameState.streak, 10)}x`;
-                const progressPct = Math.min((gameState.streak / 10) * 100, 100);
-                ui.comboBar.style.width = `${progressPct}%`;
+                comboCont.classList.remove('opacity-0');
+                document.getElementById('comboMultiplier').innerText = `${gameState.streak}x`;
+                document.getElementById('comboBar').style.width = `${Math.min(100, gameState.streak * 20)}%`;
             } else {
-                ui.comboContainer.style.opacity = '0';
-                ui.comboBar.style.width = '0%';
+                comboCont.classList.add('opacity-0');
             }
-
-            updateTimerUI();
         }
 
-        // Question Generation Engine
         function loadNextQuestion() {
-            hideFeedback();
-
-            // Select sentence based on level or generate procedural
-            let item;
-            const validTemplates = SENTENCE_DATABASE.filter(s => s.levelMin <= gameState.level);
-            if (validTemplates.length > 0 && Math.random() < 0.75) {
-                item = validTemplates[Math.floor(Math.random() * validTemplates.length)];
-            } else {
-                item = generateProceduralSentence(gameState.level);
-            }
-
-            // Pick question mode: 
-            // Mode A: "Aanwijzen" -> Click the chunk that is [Zinsdeel]
-            // Mode B: "Benoemen" -> What zinsdeel is highlighted chunk?
-            const mode = Math.random() > 0.5 ? 'IDENTIFY_TYPE' : 'SELECT_CHUNK';
-
-            const chunkIndices = Object.keys(item.analysis);
-            const targetIndex = Number(chunkIndices[Math.floor(Math.random() * chunkIndices.length)]);
-            const targetInfo = item.analysis[targetIndex];
+            const validSentences = SENTENCE_DATABASE.filter(s => s.levelMin <= gameState.level);
+            const sentenceObj = validSentences[Math.floor(Math.random() * validSentences.length)];
+            
+            const chunkIndices = Object.keys(sentenceObj.analysis);
+            const targetChunkIdx = chunkIndices[Math.floor(Math.random() * chunkIndices.length)];
+            const targetData = sentenceObj.analysis[targetChunkIdx];
 
             gameState.currentQuestion = {
-                item: item,
-                mode: mode,
-                targetIndex: targetIndex,
-                targetInfo: targetInfo
+                sentenceObj,
+                targetChunkIdx: Number(targetChunkIdx),
+                targetType: targetData.type,
+                targetLabel: targetData.label
             };
 
             renderQuestionUI();
@@ -1016,280 +742,165 @@
 
         function renderQuestionUI() {
             const q = gameState.currentQuestion;
-            ui.sentenceContainer.innerHTML = '';
-            ui.optionsGrid.innerHTML = '';
+            document.getElementById('questionCategory').innerText = `Vraag: Welk zinsdeel is dit?`;
+            document.getElementById('questionPrompt',).innerText = `Klik op het zinsdeel dat een "${q.targetLabel}" is in deze zin:`;
 
-            if (q.mode === 'SELECT_CHUNK') {
-                // Mode A: User clicks on the sentence chunk
-                const zName = ZINSDEEL_TYPES[q.targetInfo.type]?.name || q.targetInfo.label;
-                ui.questionCategory.innerText = "Tik het Zinsdeel aan";
-                ui.questionPrompt.innerHTML = `Klik op het <span class="text-amber-400 font-extrabold underline decoration-amber-400 decoration-2">${zName}</span> in deze zin:`;
-                ui.controlsInstruction.innerText = "Klik op het juiste zinsdeel in het vak hierboven 👆";
+            const displayContainer = document.getElementById('sentenceDisplayContainer');
+            displayContainer.innerHTML = '';
 
-                // Build clickable sentence chunks
-                q.item.chunks.forEach((chunkText, idx) => {
-                    const btn = document.createElement('button');
-                    btn.className = "px-4 py-2.5 bg-slate-800 hover:bg-indigo-600/80 border border-slate-700 hover:border-indigo-400 rounded-xl text-white transition-all transform hover:scale-105 active:scale-95 cursor-pointer shadow-md font-semibold text-base sm:text-xl";
-                    btn.innerText = chunkText;
-                    btn.onclick = (e) => handleAnswerSelection(idx, e);
-                    ui.sentenceContainer.appendChild(btn);
-                });
+            q.sentenceObj.chunks.forEach((chunkText, idx) => {
+                const chunkBtn = document.createElement('button');
+                chunkBtn.className = "px-4 py-2 bg-slate-800 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-400 rounded-xl text-white font-semibold transition-all transform active:scale-95 cursor-pointer shadow-md";
+                chunkBtn.innerText = chunkText;
+                chunkBtn.addEventListener('click', () => handleChunkSelection(idx));
+                displayContainer.appendChild(chunkBtn);
+            });
 
-                // Helper text in options area
-                const infoBox = document.createElement('div');
-                infoBox.className = "col-span-full text-center text-slate-400 text-sm py-4 italic";
-                infoBox.innerText = `💡 Tip: ${ZINSDEEL_TYPES[q.targetInfo.type]?.desc || 'Analyseer de zinsstructuur.'}`;
-                ui.optionsGrid.appendChild(infoBox);
-
-            } else {
-                // Mode B: Phrase is highlighted, choose Zinsdeel type from options
-                ui.questionCategory.innerText = "Benoem het Zinsdeel";
-                ui.questionPrompt.innerText = "Welk zinsdeel is de schuingedrukte/gemarkeerde groep?";
-                ui.controlsInstruction.innerText = "Kies het juiste zinsdeel uit de onderstaande opties 👇";
-
-                // Display sentence with highlighted chunk
-                q.item.chunks.forEach((chunkText, idx) => {
-                    const span = document.createElement('span');
-                    if (idx === q.targetIndex) {
-                        span.className = "px-3 py-1.5 bg-gradient-to-r from-amber-500/30 to-orange-500/30 border-2 border-amber-400 text-amber-200 font-extrabold rounded-xl shadow-lg animate-pulse-fast";
-                    } else {
-                        span.className = "px-2 py-1 text-slate-300 opacity-90";
-                    }
-                    span.innerText = chunkText;
-                    ui.sentenceContainer.appendChild(span);
-                });
-
-                // Generate 4 multiple-choice options (including correct type)
-                const correctType = q.targetInfo.type;
-                const allKeys = Object.keys(ZINSDEEL_TYPES);
-                const optionsSet = new Set([correctType]);
-
-                while (optionsSet.size < Math.min(4, allKeys.length)) {
-                    const randomKey = allKeys[Math.floor(Math.random() * allKeys.length)];
-                    optionsSet.add(randomKey);
-                }
-
-                const shuffleOptions = Array.from(optionsSet).sort(() => Math.random() - 0.5);
-
-                shuffleOptions.forEach(typeKey => {
-                    const typeObj = ZINSDEEL_TYPES[typeKey];
-                    const optBtn = document.createElement('button');
-                    optBtn.className = "w-full p-4 bg-slate-900/90 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-400 rounded-2xl text-left transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer shadow-md flex flex-col justify-between group";
-                    
-                    optBtn.innerHTML = `
-                        <span class="font-display font-bold text-white group-hover:text-amber-300 text-base mb-1">${typeObj.name}</span>
-                        <span class="text-xs text-slate-400 group-hover:text-slate-100">${typeObj.desc}</span>
-                    `;
-
-                    optBtn.onclick = (e) => handleAnswerSelection(typeKey, e);
-                    ui.optionsGrid.appendChild(optBtn);
-                });
-            }
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+            document.getElementById('controlsInstruction').innerText = "Klik op het juiste zinsdeel in de zin hierboven:";
         }
 
-        function handleAnswerSelection(selected, event) {
-            if (!gameState.active) return;
-
-            gameState.totalQuestions++;
+        function handleChunkSelection(selectedIdx) {
             const q = gameState.currentQuestion;
-            let isCorrect = false;
+            gameState.totalAnswered++;
 
-            if (q.mode === 'SELECT_CHUNK') {
-                isCorrect = (selected === q.targetIndex);
-            } else {
-                isCorrect = (selected === q.targetInfo.type);
-            }
-
-            const clickX = event ? event.clientX : window.innerWidth / 2;
-            const clickY = event ? event.clientY : window.innerHeight / 2;
+            const isCorrect = (selectedIdx === q.targetChunkIdx);
+            const rect = event.target.getBoundingClientRect();
 
             if (isCorrect) {
-                // Correct Answer Logic
-                gameState.correctAnswers++;
+                audioSynth.playCorrect();
+                gameState.correctCount++;
                 gameState.streak++;
-                if (gameState.streak > gameState.maxStreak) {
-                    gameState.maxStreak = gameState.streak;
+                if (gameState.streak > gameState.maxStreak) gameState.maxStreak = gameState.streak;
+
+                const points = 100 * gameState.streak;
+                gameState.score += points;
+
+                if (gameState.streak >= 2) {
+                    audioSynth.playCombo(gameState.streak);
                 }
 
-                // Calculate Score & Multiplier
-                const comboMultiplier = Math.min(gameState.streak, 10);
-                const basePoints = 100 * gameState.level;
-                const earnedPoints = basePoints * comboMultiplier;
-                gameState.score += earnedPoints;
-
-                // Level up check every 5 correct answers
-                if (gameState.correctAnswers % 5 === 0) {
+                if (gameState.score >= gameState.level * 500) {
                     gameState.level++;
                     audioSynth.playLevelUp();
-                    showFeedback(`🎉 LEVEL UP! NIVEAU ${gameState.level}`, 'bg-purple-600/90 text-white border-2 border-purple-300');
-                    showFloatingPopup(`LEVEL ${gameState.level}! 🔥`, 'text-purple-300');
-                } else if (gameState.streak >= 3) {
-                    audioSynth.playCombo(comboMultiplier);
-                    showFeedback(`🔥 COMBO x${comboMultiplier}! +${earnedPoints} PT`, 'bg-amber-500/90 text-slate-950 border-2 border-amber-300');
-                    showFloatingPopup(`+${earnedPoints}`, 'text-amber-400', clickX, clickY);
-                } else {
-                    audioSynth.playCorrect();
-                    showFeedback(`GEWELDIG! +${earnedPoints} PT`, 'bg-emerald-600/90 text-white border-2 border-emerald-300');
-                    showFloatingPopup(`+${earnedPoints}`, 'text-emerald-400', clickX, clickY);
+                    showFloatingPopup(`LEVEL UP! 🚀 Level ${gameState.level}`, "text-indigo-400");
                 }
 
-                spawnBurst(clickX, clickY, 25);
+                showSuccessfulFeedback(true, `Goed zo! +${points} ptn`);
+                spawnBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
 
+                setTimeout(() => {
+                    loadNextQuestion();
+                }, 900);
             } else {
-                // Wrong Answer Logic
+                audioSynth.playWrong();
                 gameState.streak = 0;
                 gameState.lives--;
+                updateHUD();
 
-                audioSynth.playWrong();
+                showSuccessfulFeedback(false, `Helaas! Dit was ${q.sentenceObj.analysis[selectedIdx]?.label || 'een ander zinsdeel'}. Het juiste zinsdeel was "${q.sentenceObj.chunks[q.targetChunkIdx]}".`);
                 document.body.classList.add('shake-screen');
                 setTimeout(() => document.body.classList.remove('shake-screen'), 400);
 
-                showFloatingPopup('-1 ❤️', 'text-red-500', clickX, clickY);
-
-                const correctTypeName = ZINSDEEL_TYPES[q.targetInfo.type]?.name || q.targetInfo.label;
-                showFeedback(`❌ HET JUISTE ANTWOORD WAS: ${correctTypeName.toUpperCase()}`, 'bg-red-600/90 text-white border-2 border-red-300');
-
                 if (gameState.lives <= 0) {
-                    gameState.lives = 0;
-                    updateStatsUI();
-                    setTimeout(() => {
-                        endGame("Geen Levens Meer! 💔", "Helaas, de 3 levens zijn op. Probeer het opnieuw!");
-                    }, 1200);
+                    setTimeout(() => endGame("Geen levens meer!"), 1000);
                     return;
                 }
+
+                setTimeout(() => {
+                    loadNextQuestion();
+                }, 1800);
             }
-
-            updateStatsUI();
-            setTimeout(loadNextQuestion, isCorrect ? 900 : 1800);
+            updateHUD();
         }
 
-        function showFeedback(text, bgClasses) {
-            ui.feedbackBanner.className = `p-4 rounded-2xl text-center font-display font-bold text-base shadow-xl ${bgClasses}`;
-            ui.feedbackBanner.innerText = text;
-            ui.feedbackBanner.classList.remove('hidden');
+        function showSuccessfulFeedback(isCorrect, message) {
+            const banner = document.getElementById('feedbackBanner');
+            banner.classList.remove('hidden', 'bg-emerald-600', 'bg-red-600');
+            banner.classList.add(isCorrect ? 'bg-emerald-600' : 'bg-red-600', 'text-white');
+            banner.innerText = message;
+
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 1500);
         }
 
-        function hideFeedback() {
-            ui.feedbackBanner.classList.add('hidden');
+        function endGame(reason) {
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+
+            document.getElementById('endTitle').innerText = reason;
+            document.getElementById('finalScore').innerText = gameState.score;
+            document.getElementById('finalLevel').innerText = gameState.level;
+            document.getElementById('finalStreak',).innerText = `${gameState.maxStreak}x`;
+            
+            const accuracy = gameState.totalAnswered > 0 ? Math.round((gameState.correctCount / gameState.totalAnswered) * 100) : 100;
+            document.getElementById('finalAccuracy').innerText = `${accuracy}%`;
+
+            showScreen('gameover');
         }
 
-        function endGame(title, subtitle) {
-            gameState.active = false;
-            clearInterval(gameState.timerInterval);
-
-            // Calculate Accuracy
-            const accuracy = gameState.totalQuestions > 0 
-                ? Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100) 
-                : 0;
-
-            ui.finalScore.innerText = gameState.score.toLocaleString();
-            ui.finalLevel.innerText = gameState.level;
-            ui.finalStreak.innerText = `${gameState.maxStreak}x`;
-            ui.finalAccuracy.innerText = `${accuracy}%`;
-
-            document.getElementById('endTitle').innerText = title;
-            document.getElementById('endSubtitle').innerText = subtitle;
-
-            // Big Confetti burst for high scores
-            spawnBurst(window.innerWidth / 2, window.innerHeight / 3, 100);
-
-            // Switch Screen Views
-            ui.gamePlayScreen.classList.add('hidden');
-            ui.gamePlayScreen.classList.remove('flex');
-            ui.gameOverScreen.classList.remove('hidden');
-        }
-
-        // Leaderboard Handler Functions
-        async function handleScoreSubmit(e) {
+        document.getElementById('scoreForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = ui.playerNameInput.value.trim();
+            const nameInput = document.getElementById('playerNameInput');
+            const btn = document.getElementById('btnSubmitScore');
+            const statusMsg = document.getElementById('saveStatusMsg');
+            const name = nameInput.value.trim();
+
             if (!name) return;
 
-            ui.btnSubmitScore.disabled = true;
-            ui.btnSubmitScore.style.opacity = '0.5';
-            ui.saveStatusMsg.innerText = "Opslaan op server... ⏳";
-            ui.saveStatusMsg.classList.remove('hidden');
+            btn.disabled = true;
+            btn.innerText = "Bezig met opslaan...";
 
-            const success = await window.saveScoreToLeaderboard(
-                name,
-                gameState.score,
-                gameState.level,
-                gameState.maxStreak
-            );
-
+            const success = await window.saveScoreToLeaderboard(name, gameState.score, gameState.level, gameState.maxStreak);
+            statusMsg.classList.remove('hidden');
             if (success) {
-                ui.saveStatusMsg.innerText = "✅ Score succesvol opgeslagen!";
-                ui.saveStatusMsg.className = "text-xs font-semibold mt-2 text-emerald-400";
-                setTimeout(() => {
-                    openLeaderboard();
-                }, 1000);
+                statusMsg.innerText = "Score succesvol opgeslagen op de ranglijst! 🎉";
+                statusMsg.className = "text-xs font-semibold mt-2 text-emerald-400";
+                nameInput.disabled = true;
+                btn.innerText = "Opgeslagen ✓";
             } else {
-                ui.saveStatusMsg.innerText = "⚠️ Offline opgeslagen of verbinding mislukt.";
-                ui.saveStatusMsg.className = "text-xs font-semibold mt-2 text-amber-400";
+                statusMsg.innerText = "Kon score niet opslaan (offline/fout). Probeer het opnieuw.";
+                statusMsg.className = "text-xs font-semibold mt-2 text-red-400";
+                btn.disabled = false;
+                btn.innerText = "Score Opslaan 💾";
             }
-        }
+        });
 
-        function openLeaderboard() {
-            ui.startScreen.classList.add('hidden');
-            ui.gameOverScreen.classList.add('hidden');
-            ui.gamePlayScreen.classList.add('hidden');
-            ui.gamePlayScreen.classList.remove('flex');
-            ui.leaderboardScreen.classList.remove('hidden');
+        function loadLeaderboardData() {
+            const loading = document.getElementById('leaderboardLoading');
+            const table = document.getElementById('leaderboardTable');
+            const tbody = document.getElementById('leaderboardBody');
 
-            ui.leaderboardLoading.classList.remove('hidden');
-            ui.leaderboardTable.classList.add('hidden');
+            loading.classList.remove('hidden');
+            table.classList.add('hidden');
 
-            // Render live highscores from Firestore
             window.listenLeaderboard((scores) => {
-                ui.leaderboardLoading.classList.add('hidden');
-                ui.leaderboardTable.classList.remove('hidden');
-                ui.leaderboardBody.innerHTML = '';
+                loading.classList.add('hidden');
+                table.classList.remove('hidden');
+                tbody.innerHTML = '';
 
                 if (scores.length === 0) {
-                    ui.leaderboardBody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="py-6 text-center text-slate-400 text-xs">
-                                Nog geen scores opgeslagen. Wees de eerste! 🚀
-                            </td>
-                        </tr>
-                    `;
+                    tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">Nog geen scores opgeslagen. Speel als eerste!</td></tr>`;
                     return;
                 }
 
-                scores.forEach((item, index) => {
+                scores.forEach((item, idx) => {
                     const row = document.createElement('tr');
-                    row.className = index % 2 === 0 ? 'bg-slate-900/40' : 'bg-slate-800/20';
-
-                    let badge = `#${index + 1}`;
-                    if (index === 0) badge = '🥇 1';
-                    if (index === 1) badge = '🥈 2';
-                    if (index === 2) badge = '🥉 3';
-
+                    row.className = "hover:bg-slate-700/30 transition-colors";
                     row.innerHTML = `
-                        <td class="py-3 px-4 font-bold text-amber-300 text-xs">${badge}</td>
-                        <td class="py-3 px-4 font-bold text-white">${escapeHtml(item.name || 'Anoniem')}</td>
-                        <td class="py-3 px-4 text-center text-indigo-300 font-semibold text-xs">Lvl ${item.level || 1}</td>
-                        <td class="py-3 px-4 text-right font-display font-bold text-emerald-400">${Number(item.score || 0).toLocaleString()}</td>
+                        <td class="py-3 px-4 font-bold text-slate-400">#${idx + 1}</td>
+                        <td class="py-3 px-4 font-semibold text-white">${escapeHtml(item.name || 'Anoniem')}</td>
+                        <td class="py-3 px-4 text-center text-indigo-300">${item.level || 1}</td>
+                        <td class="py-3 px-4 text-right font-display font-bold text-amber-400">${item.score || 0}</td>
                     `;
-                    ui.leaderboardBody.appendChild(row);
+                    tbody.appendChild(row);
                 });
             });
         }
 
-        function closeLeaderboard() {
-            ui.leaderboardScreen.classList.add('hidden');
-            if (gameState.active) {
-                ui.gamePlayScreen.classList.remove('hidden');
-                ui.gamePlayScreen.classList.add('flex');
-            } else {
-                ui.startScreen.classList.remove('hidden');
-            }
-        }
-
-        function escapeHtml(text) {
-            return String(text).replace(/[&<>"']/g, function(m) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-            });
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
     </script>
 </body>
