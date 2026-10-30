@@ -181,6 +181,10 @@
         <!-- ================= PLAY GAME SCREEN ================= -->
         <div id="gamePlayScreen" class="hidden flex-col gap-6 my-auto">
             
+            <!-- Instant Feedback Bar (Nu bovenaan het speelscherm geplaatst) -->
+            <div id="feedbackBanner" class="hidden p-4 rounded-2xl text-center font-display font-bold text-base transition-all animate-bounce-short shadow-xl">
+            </div>
+
             <!-- Question Header Banner -->
             <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-xl">
                 <!-- Decorative Glow Background -->
@@ -198,10 +202,6 @@
                 <!-- Sentence Display Box -->
                 <div id="sentenceDisplayContainer" class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 min-h-[100px] flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-lg sm:text-2xl font-semibold text-slate-100 shadow-inner">
                 </div>
-            </div>
-
-            <!-- Instant Feedback Bar -->
-            <div id="feedbackBanner" class="hidden p-4 rounded-2xl text-center font-display font-bold text-base transition-all animate-bounce-short">
             </div>
 
         </div>
@@ -571,7 +571,6 @@
     </script>
 
     <script>
-        // Toegevoegd: Grammaticale regels/tips bij elk zinsdeel voor betere didactische feedback
         const ZINSDEEL_TYPES = {
             PV: { code: 'pv', name: 'Persoonsvorm (PV)', tip: 'Verandert van vorm als je de zin in een andere tijd (of getal) zet.' },
             OW: { code: 'ow', name: 'Onderwerp (OW)', tip: 'Vraag: Wie of wat + persoonsvorm?' },
@@ -1029,18 +1028,21 @@
 
                 const feedbackText = `❌ Helaas! Dit was ${selectedLabel}.\nHet juiste zinsdeel was: "${q.sentenceObj.chunks[q.targetChunkIdx]}" (${q.targetLabel}).\n💡 Onthoud: ${ruleTip}`;
 
-                showSuccessfulFeedback(false, feedbackText, 3000);
+                // FEEDBACKTIJD AANGEPAST NAAR 4.0 SECONDEN (4000ms)
+                const WRONG_FEEDBACK_DURATION = 4000;
+                showSuccessfulFeedback(false, feedbackText, WRONG_FEEDBACK_DURATION);
+                
                 document.body.classList.add('shake-screen');
                 setTimeout(() => document.body.classList.remove('shake-screen'), 400);
 
                 if (gameState.lives <= 0) {
-                    setTimeout(() => endGame("Geen levens meer!"), 1500);
+                    setTimeout(() => endGame("Geen levens meer!"), WRONG_FEEDBACK_DURATION);
                     return;
                 }
 
                 setTimeout(() => {
                     loadNextQuestion();
-                }, 3000);
+                }, WRONG_FEEDBACK_DURATION);
             }
             updateHUD();
         }
