@@ -200,15 +200,6 @@
                 </div>
             </div>
 
-            <!-- Interactive Answer Controls -->
-            <div id="answerOptionsContainer" class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-xl">
-                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider text-center mb-4" id="controlsInstruction">
-                    Kies het juiste antwoord:
-                </p>
-                <div id="optionsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                </div>
-            </div>
-
             <!-- Instant Feedback Bar -->
             <div id="feedbackBanner" class="hidden p-4 rounded-2xl text-center font-display font-bold text-base transition-all animate-bounce-short">
             </div>
@@ -580,20 +571,21 @@
     </script>
 
     <script>
+        // Toegevoegd: Grammaticale regels/tips bij elk zinsdeel voor betere didactische feedback
         const ZINSDEEL_TYPES = {
-            PV: { code: 'pv', name: 'Persoonsvorm (PV)', desc: 'Het vervoegde werkwoord dat verandert bij tijd/getal' },
-            OW: { code: 'ow', name: 'Onderwerp (OW)', desc: 'Wie of wat doet de handeling?' },
-            WG: { code: 'wg', name: 'Werkwoordelijk gezegde (WG)', desc: 'Alle werkwoorden in de zin samen' },
-            NG: { code: 'ng', name: 'Naamwoordelijk gezegde (NG)', desc: 'Koppelwerkwoord + naamwoordelijk deel' },
-            LV: { code: 'lv', name: 'Lijdend voorwerp (LV)', desc: 'Wie of wat ondergaat de werking?' },
-            MV: { code: 'mv', name: 'Meewerkend voorwerp (MV)', desc: 'Aan/voor wie wordt iets gedaan/gegeven?' },
-            BWB: { code: 'bwb', name: 'Bijwoordelijke bepaling (BWB)', desc: 'Schaft info over tijd, plaats, wijze, reden' },
-            BVB: { code: 'bvb', name: 'Bijvoeglijke bepaling (BVB)', desc: 'Zegt iets over een zelfstandig naamwoord' },
-            VV: { code: 'vv', name: 'Voorzetselvoorwerp (VV)', desc: 'Vast voorzetsel gekoppeld aan het werkwoord' }
+            PV: { code: 'pv', name: 'Persoonsvorm (PV)', tip: 'Verandert van vorm als je de zin in een andere tijd (of getal) zet.' },
+            OW: { code: 'ow', name: 'Onderwerp (OW)', tip: 'Vraag: Wie of wat + persoonsvorm?' },
+            WG: { code: 'wg', name: 'Werkwoordelijk gezegde (WG)', tip: 'Bestaat uit alle werkwoorden in de zin samen.' },
+            NG: { code: 'ng', name: 'Naamwoordelijk gezegde (NG)', tip: 'Koppelwerkwoord (zijn, worden, blijven, etc.) + eigenschap van het onderwerp.' },
+            LV: { code: 'lv', name: 'Lijdend voorwerp (LV)', tip: 'Vraag: Wie of wat + werkwoordelijk gezegde + onderwerp?' },
+            MV: { code: 'mv', name: 'Meewerkend voorwerp (MV)', tip: 'Vraag: Aan of voor wie + werkwoordelijk gezegde + onderwerp + lijdend voorwerp?' },
+            BWB: { code: 'bwb', name: 'Bijwoordelijke bepaling (BWB)', tip: 'Geeft antwoord op vragen als: wanneer, waar, hoe, waarmee of waarom?' },
+            BVB: { code: 'bvb', name: 'Bijvoeglijke bepaling (BVB)', tip: 'Zegt iets over een zelfstandig naamwoord binnen een groter zinsdeel.' },
+            VV: { code: 'vv', name: 'Voorzetselvoorwerp (VV)', tip: 'Begint met een vast voorzetsel dat bij het werkwoord hoort.' }
         };
 
         const SENTENCE_DATABASE = [
-            // Level 1: Basiszinnen (Iets uitgebreid)
+            // Level 1: Basiszinnen
             {
                 chunks: ["De slimme kat uit de straat", "vliegt", "morgenochtend vroeg", "naar de maan"],
                 analysis: {
@@ -990,10 +982,6 @@
                 chunkBtn.addEventListener('click', (event) => handleChunkSelection(idx, event));
                 displayContainer.appendChild(chunkBtn);
             });
-
-            const optionsGrid = document.getElementById('optionsGrid');
-            optionsGrid.innerHTML = '';
-            document.getElementById('controlsInstruction').innerText = "Kies het juiste zinsdeel in de zin hierboven:";
         }
 
         function handleChunkSelection(selectedIdx, event) {
@@ -1022,7 +1010,7 @@
                     showFloatingPopup(`LEVEL UP! 🚀 level ${gameState.level}`, "text-indigo-400");
                 }
 
-                showSuccessfulFeedback(true, `Goed zo! +${points} ptn`);
+                showSuccessfulFeedback(true, `Goed zo! +${points} ptn`, 1500);
                 spawnBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
 
                 setTimeout(() => {
@@ -1034,31 +1022,38 @@
                 gameState.lives--;
                 updateHUD();
 
-                showSuccessfulFeedback(false, `Helaas! Dit was ${q.sentenceObj.analysis[selectedIdx]?.label || 'een ander zinsdeel'}. Het juiste zinsdeel was "${q.sentenceObj.chunks[q.targetChunkIdx]}".`);
+                // Haal de didactische regel/tip op van het juiste antwoord
+                const correctType = q.targetType;
+                const ruleTip = ZINSDEEL_TYPES[correctType]?.tip || '';
+                const selectedLabel = q.sentenceObj.analysis[selectedIdx]?.label || 'een ander zinsdeel';
+
+                const feedbackText = `❌ Helaas! Dit was ${selectedLabel}.\nHet juiste zinsdeel was: "${q.sentenceObj.chunks[q.targetChunkIdx]}" (${q.targetLabel}).\n💡 Onthoud: ${ruleTip}`;
+
+                showSuccessfulFeedback(false, feedbackText, 3000);
                 document.body.classList.add('shake-screen');
                 setTimeout(() => document.body.classList.remove('shake-screen'), 400);
 
                 if (gameState.lives <= 0) {
-                    setTimeout(() => endGame("Geen levens meer!"), 1000);
+                    setTimeout(() => endGame("Geen levens meer!"), 1500);
                     return;
                 }
 
                 setTimeout(() => {
                     loadNextQuestion();
-                }, 1800);
+                }, 3000);
             }
             updateHUD();
         }
 
-        function showSuccessfulFeedback(isCorrect, message) {
+        function showSuccessfulFeedback(isCorrect, message, duration = 1500) {
             const banner = document.getElementById('feedbackBanner');
             banner.classList.remove('hidden', 'bg-emerald-600', 'bg-red-600');
-            banner.classList.add(isCorrect ? 'bg-emerald-600' : 'bg-red-600', 'text-white');
+            banner.classList.add(isCorrect ? 'bg-emerald-600' : 'bg-red-600', 'text-white', 'whitespace-pre-line');
             banner.innerText = message;
 
             setTimeout(() => {
                 banner.classList.add('hidden');
-            }, 1500);
+            }, duration);
         }
 
         function endGame(reason) {
